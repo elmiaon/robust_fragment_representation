@@ -2,30 +2,30 @@ CORPUS=('JW300' 'QED' 'TED2020')
 SRC_LANGS=('fr' 'de' 'th' 'ar')
 TARGET_LANGS=('en')
 
-if [[ -d "data" ]]; then
+if [[ -d "/mount/data" ]]; then
     echo "data exists"
 else
-    mkdir "data"
+    mkdir "/mount/data"
 fi
 
-if [[ -d "data/raw" ]]; then
-    echo "raw exists"
+if [[ -d "/mount/data/raw" ]]; then
+    echo "data/raw exists"
 else
-    mkdir "data/raw"
+    mkdir "/mount/data/raw"
 fi
 
-if [[ -d "data/raw/opus" ]]; then
-    echo "raw/opus exists"
+if [[ -d "/mount/data/raw/opus" ]]; then
+    echo "data/raw/opus exists"
 else
-    mkdir "data/raw/opus"
+    mkdir "/mount/data/raw/opus"
 fi
 
 for i in "${CORPUS[@]}"; do
-    if [[ -d "data/raw/opus/$i" ]]; then
-        echo "data/raw/opus/$i"
+    if [[ -d "/mount/data/raw/opus/$i" ]]; then
+        echo "/mount/data/raw/opus/$i"
     else
-        echo "create data/raw/opus/$i"
-        mkdir "data/raw/opus/$i/"
+        echo "create /mount/data/raw/opus/$i"
+        mkdir "/mount/data/raw/opus/$i/"
     fi
 
     for j in "${SRC_LANGS[@]}"; do
