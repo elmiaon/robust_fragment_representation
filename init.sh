@@ -8,8 +8,3 @@ docker-compose up -d
 cd ..
 docker exec -ti fragment_encoder /bin/bash
 cd /mount
-
-echo "##################################################"
-echo "### load data                                  ###"
-echo "##################################################"
-bash load_raw.sh
