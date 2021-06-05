@@ -3,7 +3,7 @@ import numpy as np
 import src.log as log
 
 def main():
-
+    logger = log.get_logger(__name__)
     # read input - get sdf, tdf, gdf
     # sub_corpus = ['JW300', 'QED', 'TED2020']
     # src = ['fr', 'de', 'ar', 'th']
@@ -25,7 +25,11 @@ def main():
     sub_corpus = 'QED'
     src = 'th'
     tar = 'en'
-    load_corpus.load_CLSR((corpus, sub_corpus, src, tar))
+    if load_corpus.load_CLSR((corpus, sub_corpus, src, tar)):
+        logger.info(f"now timed")
+    else:
+        logger.info(f"skipped")
+        
     # tokenize - save
 
     # embed

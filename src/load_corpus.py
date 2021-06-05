@@ -14,15 +14,15 @@ def load_CLSR(args, root='data'):
     corpus, sub_corpus, s, t = args
 
     logger = log.get_logger(__name__)
-    corpus_dir = f"{root}/prepared/{corpus}/{sub_corpus}"
+    corpus_dir = f"{root}/loaded/{corpus}/{sub_corpus}"
     utils.make_dir(corpus_dir)
-    s_fwd_output_dir = f"{root}/prepared/{corpus}/{sub_corpus}/{s}-{t}.{s}.csv"
-    t_fwd_output_dir = f"{root}/prepared/{corpus}/{sub_corpus}/{s}-{t}.{t}.csv"
-    g_fwd_output_dir = f"{root}/prepared/{corpus}/{sub_corpus}/{s}-{t}.gold.csv"
+    s_fwd_output_dir = f"{root}/loaded/{corpus}/{sub_corpus}/{s}-{t}.{s}.csv"
+    t_fwd_output_dir = f"{root}/loaded/{corpus}/{sub_corpus}/{s}-{t}.{t}.csv"
+    g_fwd_output_dir = f"{root}/loaded/{corpus}/{sub_corpus}/{s}-{t}.gold.csv"
 
-    s_bwd_output_dir = f"{root}/prepared/{corpus}/{sub_corpus}/{t}-{s}.{s}.csv"
-    t_bwd_output_dir = f"{root}/prepared/{corpus}/{sub_corpus}/{t}-{s}.{t}.csv"
-    g_bwd_output_dir = f"{root}/prepared/{corpus}/{sub_corpus}/{t}-{s}.gold.csv"
+    s_bwd_output_dir = f"{root}/loaded/{corpus}/{sub_corpus}/{t}-{s}.{s}.csv"
+    t_bwd_output_dir = f"{root}/loaded/{corpus}/{sub_corpus}/{t}-{s}.{t}.csv"
+    g_bwd_output_dir = f"{root}/loaded/{corpus}/{sub_corpus}/{t}-{s}.gold.csv"
 
     s_check = os.path.isfile(s_fwd_output_dir) or os.path.isfile(s_bwd_output_dir)
     t_check = os.path.isfile(t_fwd_output_dir) or os.path.isfile(t_bwd_output_dir)
@@ -59,6 +59,9 @@ def load_CLSR(args, root='data'):
             toc = time()
             logger.info(f"prepare gold in {toc-tic:.2f} second(s)")
             logger.info(f"sample: {gdf}")
+        return True
+    else:
+        return False
 
 def load_raw(corpus, sub_corpus, s, t):
     if corpus == "UN":
@@ -93,7 +96,7 @@ def create_id(lang, amount):
 
 ### UN ###
 def create_UN_df(part, lang):
-    data = read_raw(f"corpus/raw/UN/{part}/UNv1.0.{part}.{lang}")
+    data = read_raw(f"data/raw/UN/{part}/UNv1.0.{part}.{lang}")
     sid = create_id(lang, len(data))
     df = pd.DataFrame({"id": sid,
                         lang: data})
@@ -109,27 +112,23 @@ def load_UN(part, s, t):
 ### BUCC ###
 def load_BUCC(part, s, t):
     try:
-        sdf = pd.read_csv(f"corpus/raw/BUCC/{part}/{s}-{t}.{part}.{s}", sep="\t", names=["id", s])
-        tdf = pd.read_csv(f"corpus/raw/BUCC/{part}/{s}-{t}.{part}.{t}", sep="\t", names=["id", t])
-        gdf = pd.read_csv(f"corpus/raw/BUCC/{part}/{s}-{t}.{part}.gold", sep="\t", names=[s, t])
+        sdf = pd.read_csv(f"data/raw/BUCC/{part}/{s}-{t}.{part}.{s}", sep="\t", names=["id", s])
+        tdf = pd.read_csv(f"data/raw/BUCC/{part}/{s}-{t}.{part}.{t}", sep="\t", names=["id", t])
+        gdf = pd.read_csv(f"data/raw/BUCC/{part}/{s}-{t}.{part}.gold", sep="\t", names=[s, t])
     except(FileNotFoundError):
-        sdf = pd.read_csv(f"corpus/raw/BUCC/{part}/{t}-{s}.{part}.{s}", sep="\t", names=["id", s])
-        tdf = pd.read_csv(f"corpus/raw/BUCC/{part}/{t}-{s}.{part}.{t}", sep="\t", names=["id", t])
-        gdf = pd.read_csv(f"corpus/raw/BUCC/{part}/{t}-{s}.{part}.gold", sep="\t", names=[t, s])
+        sdf = pd.read_csv(f"data/raw/BUCC/{part}/{t}-{s}.{part}.{s}", sep="\t", names=["id", s])
+        tdf = pd.read_csv(f"data/raw/BUCC/{part}/{t}-{s}.{part}.{t}", sep="\t", names=["id", t])
+        gdf = pd.read_csv(f"data/raw/BUCC/{part}/{t}-{s}.{part}.gold", sep="\t", names=[t, s])
         gdf = gdf[[s, t]]
-        # sdf.to_csv(f"corpus/raw/BUCC/{part}/{s}-{t}.{part}.{s}", sep="\t", index=False, header=False)
-        # tdf.to_csv(f"corpus/raw/BUCC/{part}/{s}-{t}.{part}.{t}", sep="\t", index=False, header=False)
-        # gdf.to_csv(f"corpus/raw/BUCC/{part}/{s}-{t}.{part}.gold", sep="\t", index=False, header=False)
     finally:
         return sdf, tdf, gdf
 
 ### europarl ###
 def create_europarl_df(part, s, t, lang):
     try:
-        data = read_raw(f"corpus/raw/europarl/{part}/europarl-v7.{s}-{t}.{lang}")
+        data = read_raw(f"data/raw/europarl/{part}/europarl-v7.{s}-{t}.{lang}")
     except FileNotFoundError:
-        data = read_raw(f"corpus/raw/europarl/{part}/europarl-v7.{t}-{s}.{lang}")
-        # write_raw(f"corpus/raw/europarl/{part}/europarl-v7.{s}-{t}.{lang}", data)
+        data = read_raw(f"data/raw/europarl/{part}/europarl-v7.{t}-{s}.{lang}")
     sid = create_id(lang, len(data))
     df = pd.DataFrame({"id": sid,
                         lang: data})
