@@ -1,0 +1,5 @@
+PyStemmer
+mmh3
+python-rapidjson
+spacy>=2.1
+unidecode

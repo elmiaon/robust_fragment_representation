@@ -1,0 +1,9 @@
+version: '3'
+services:
+  sa_app:
+    container_name: fragment_encoder
+    image: ubuntu-python3
+    stdin_open: True
+    tty: True
+    volumes:
+      - ../:/mount

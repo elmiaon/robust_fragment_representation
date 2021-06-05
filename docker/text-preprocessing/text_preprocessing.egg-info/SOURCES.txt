@@ -1,0 +1,14 @@
+README.md
+setup.py
+text_preprocessing/__init__.py
+text_preprocessing/modernize.py
+text_preprocessing/preprocessor.py
+text_preprocessing/text_loader.py
+text_preprocessing.egg-info/PKG-INFO
+text_preprocessing.egg-info/SOURCES.txt
+text_preprocessing.egg-info/dependency_links.txt
+text_preprocessing.egg-info/requires.txt
+text_preprocessing.egg-info/top_level.txt
+text_preprocessing/lang/__init__.py
+text_preprocessing/lang/en_dict.py
+text_preprocessing/lang/fr_dict.py
