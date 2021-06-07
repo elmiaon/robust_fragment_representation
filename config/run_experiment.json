@@ -1,0 +1,10 @@
+{
+    "dev": {
+        "description": "Dev code on entire pipeline. Mom bless me",
+        "pipeline_list":[""],
+        "exp_code_list":[0],
+        "corpus_list":[
+            ["opus", "JW300"]
+        ]
+    }
+}
