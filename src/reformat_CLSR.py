@@ -1,28 +1,35 @@
-# # import basic lib
+##################################################
+### import                                     ###
+##################################################
+# basic lib
 import numpy as np
 import os
 import pandas as pd
-# import logging lib
+# logging lib
 import logging
 import src.log as log
-# import time lib
+# time lib
 from time import time
-# # import custom lib
+# custom lib
 import src.utils as utils
 
-def load_CLSR(args, root='data'):
+##################################################
+### reformat CLSR                              ###
+##################################################
+
+def reformat_CLSR(args):
     corpus, sub_corpus, s, t = args
 
     logger = log.get_logger(__name__)
-    corpus_dir = f"{root}/loaded/{corpus}/{sub_corpus}"
+    corpus_dir = f"data/reformatted/{corpus}/{sub_corpus}"
     utils.make_dir(corpus_dir)
-    s_fwd_output_dir = f"{root}/loaded/{corpus}/{sub_corpus}/{s}-{t}.{s}.csv"
-    t_fwd_output_dir = f"{root}/loaded/{corpus}/{sub_corpus}/{s}-{t}.{t}.csv"
-    g_fwd_output_dir = f"{root}/loaded/{corpus}/{sub_corpus}/{s}-{t}.gold.csv"
+    s_fwd_output_dir = f"data/reformatted/{corpus}/{sub_corpus}/{s}-{t}.{s}.csv"
+    t_fwd_output_dir = f"data/reformatted/{corpus}/{sub_corpus}/{s}-{t}.{t}.csv"
+    g_fwd_output_dir = f"data/reformatted/{corpus}/{sub_corpus}/{s}-{t}.gold.csv"
 
-    s_bwd_output_dir = f"{root}/loaded/{corpus}/{sub_corpus}/{t}-{s}.{s}.csv"
-    t_bwd_output_dir = f"{root}/loaded/{corpus}/{sub_corpus}/{t}-{s}.{t}.csv"
-    g_bwd_output_dir = f"{root}/loaded/{corpus}/{sub_corpus}/{t}-{s}.gold.csv"
+    s_bwd_output_dir = f"data/reformatted/{corpus}/{sub_corpus}/{t}-{s}.{s}.csv"
+    t_bwd_output_dir = f"data/reformatted/{corpus}/{sub_corpus}/{t}-{s}.{t}.csv"
+    g_bwd_output_dir = f"data/reformatted/{corpus}/{sub_corpus}/{t}-{s}.gold.csv"
 
     s_check = os.path.isfile(s_fwd_output_dir) or os.path.isfile(s_bwd_output_dir)
     t_check = os.path.isfile(t_fwd_output_dir) or os.path.isfile(t_bwd_output_dir)
@@ -30,7 +37,7 @@ def load_CLSR(args, root='data'):
 
     if not (s_check and t_check and g_check):
         tic = time()
-        sdf, tdf, gdf = load_raw(corpus, sub_corpus, s, t)
+        sdf, tdf, gdf = load_raw_CLSR(corpus, sub_corpus, s, t)
         toc = time()
         logger.info(f"loading raw data from {corpus} - {sub_corpus} in {toc-tic:.2f} second(s)")
 
@@ -63,7 +70,11 @@ def load_CLSR(args, root='data'):
     else:
         return False
 
-def load_raw(corpus, sub_corpus, s, t):
+##################################################
+### common function for CLSR                   ###
+##################################################
+
+def load_raw_CLSR(corpus, sub_corpus, s, t):
     if corpus == "UN":
         if not sub_corpus in ['6way', 'devset', 'testset']:
             raise ValueError(f"{sub_corpus} is not sub-corpus of {corpus}")
@@ -94,6 +105,9 @@ def create_id(lang, amount):
     sen_id = [f"{lang}-{i:0>8d}" for i in range(amount)]
     return sen_id
 
+##################################################
+### load CLSR dataset                          ###
+##################################################
 ### UN ###
 def create_UN_df(part, lang):
     data = read_raw(f"data/raw/UN/{part}/UNv1.0.{part}.{lang}")
