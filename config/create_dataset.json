@@ -60,6 +60,12 @@
             "corpus_list": "JW300",
             "source_list": ["fr", "de", "th", "ar"],
             "target_list": ["en"]
+        },
+        "opus":{
+            "method": "CLSRs0",
+            "corpus_list": "opus",
+            "source_list": ["fr", "de", "th", "ar"],
+            "target_list": ["en"]
         }
     }
 }
