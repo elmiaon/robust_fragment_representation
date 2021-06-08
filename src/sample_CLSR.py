@@ -38,6 +38,12 @@ def sample_CLSR(args):
     t_bwd_output_dir = f"data/reformatted/{corpus}/{sub_corpus}/{t}-{s}.{t}.csv"
     g_bwd_output_dir = f"data/reformatted/{corpus}/{sub_corpus}/{t}-{s}.gold.csv"
     
+    s_check = os.path.isfile(s_fwd_output_dir) or os.path.isfile(s_bwd_output_dir)
+    t_check = os.path.isfile(t_fwd_output_dir) or os.path.isfile(t_bwd_output_dir)
+    g_check = os.path.isfile(g_fwd_output_dir) or os.path.isfile(g_bwd_output_dir)
+
+    skip = (s_check and t_check and g_check)
+    
     if return_remain:
         utils.make_dir(f"{corpus_dir}Remain")
         s_fwd_remain_dir = f"data/reformatted/{corpus}/{sub_corpus}Remain/{s}-{t}.{s}.csv"
@@ -48,18 +54,11 @@ def sample_CLSR(args):
         t_bwd_remain_dir = f"data/reformatted/{corpus}/{sub_corpus}Remain/{t}-{s}.{t}.csv"
         g_bwd_remain_dir = f"data/reformatted/{corpus}/{sub_corpus}Remain/{t}-{s}.gold.csv"
 
-        s_check = os.path.isfile(s_fwd_output_dir) or os.path.isfile(s_bwd_output_dir)
-        t_check = os.path.isfile(t_fwd_output_dir) or os.path.isfile(t_bwd_output_dir)
-        g_check = os.path.isfile(g_fwd_output_dir) or os.path.isfile(g_bwd_output_dir)
-
-        skip = (s_check and t_check and g_check) and (s_remain_check and t_remain_check and g_remain_check)
-
-    else:
         s_remain_check = os.path.isfile(s_fwd_remain_dir) or os.path.isfile(s_bwd_output_dir)
         t_remain_check = os.path.isfile(t_fwd_remain_dir) or os.path.isfile(t_bwd_output_dir)
         g_remain_check = os.path.isfile(g_fwd_remain_dir) or os.path.isfile(g_bwd_output_dir)
 
-        skip = (s_check and t_check and g_check)
+        skip = (s_check and t_check and g_check) and (s_remain_check and t_remain_check and g_remain_check)
 
     if not skip:
         tic = time()
@@ -125,12 +124,12 @@ def get_out_open_df(in_open, n_out_open, remain_close, remain_g):
 
 def load_reformatted(corpus, sub_corpus, s, t):
     try:
-        sdf = pd.read_csv(f"corpus/reformatted/{corpus}/{sub_corpus}/{s}-{t}.{s}.csv", sep='\t', converters={f"{s}": literal_eval})
-        tdf = pd.read_csv(f"corpus/reformatted/{corpus}/{sub_corpus}/{s}-{t}.{t}.csv", sep='\t', converters={f"{t}": literal_eval})
-        gdf = pd.read_csv(f"corpus/reformatted/{corpus}/{sub_corpus}/{s}-{t}.gold.csv", sep='\t')
+        sdf = pd.read_csv(f"data/reformatted/{corpus}/{sub_corpus}/{s}-{t}.{s}.csv", sep='\t')
+        tdf = pd.read_csv(f"data/reformatted/{corpus}/{sub_corpus}/{s}-{t}.{t}.csv", sep='\t')
+        gdf = pd.read_csv(f"data/reformatted/{corpus}/{sub_corpus}/{s}-{t}.gold.csv", sep='\t')
     except(FileNotFoundError):
-        sdf = pd.read_csv(f"corpus/reformatted/{corpus}/{sub_corpus}/{t}-{s}.{s}.csv", sep='\t', converters={f"{s}": literal_eval})
-        tdf = pd.read_csv(f"corpus/reformatted/{corpus}/{sub_corpus}/{t}-{s}.{t}.csv", sep='\t', converters={f"{t}": literal_eval})
-        gdf = pd.read_csv(f"corpus/reformatted/{corpus}/{sub_corpus}/{t}-{s}.gold.csv", sep='\t')
+        sdf = pd.read_csv(f"data/reformatted/{corpus}/{sub_corpus}/{t}-{s}.{s}.csv", sep='\t')
+        tdf = pd.read_csv(f"data/reformatted/{corpus}/{sub_corpus}/{t}-{s}.{t}.csv", sep='\t')
+        gdf = pd.read_csv(f"data/reformatted/{corpus}/{sub_corpus}/{t}-{s}.gold.csv", sep='\t')
         gdf = gdf[[s, t]]
     return sdf, tdf, gdf

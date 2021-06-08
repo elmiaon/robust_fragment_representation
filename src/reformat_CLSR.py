@@ -171,7 +171,4 @@ def load_opus(part, s, t):
     tdf = create_opus_df(part, s, t, t)
     gdf = pd.DataFrame({s: sdf["id"],
                          t: tdf["id"]})
-    print(f"sdf:{sdf.shape}")
-    print(f"tdf:{tdf.shape}")
-    print(f"gdf:{gdf.shape}")
     return [sdf, tdf, gdf]

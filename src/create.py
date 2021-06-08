@@ -14,7 +14,7 @@ from time import time
 # custom lib
 import src.utils as utils
 import src.reformat_CLSR as reformat_CLSR
-import src.sample as sample
+import src.sample_CLSR as sample_CLSR
 
 ##################################################
 ### create dataset                             ###
@@ -31,9 +31,9 @@ def create_dataset(filename):
     for method, args in pipeline:
         logger.info(f"{method}: {args}")
         if method == 'reformat_CLSR':
-            reformat(args)
+            reformat_CLSR.reformat_CLSR(args)
         elif method == 'sample_CLSR':
-            sample(args)
+            sample_CLSR.sample_CLSR(args)
         else:
             raise ValueError('invalid create method')
 
@@ -112,25 +112,25 @@ def get_CLSRs0_pipeline(corpus_list, source_language_list, target_language_list)
                 out_corpus = f"{corpus}-{sub_corpus}-CLSRs0"
                 te = f"teParent" # main test set for sample
                 teRemain = f"{te}Remain" # the remain for create the tuning set
-                pipeline.append(  ( 'sample', (out_corpus, te, corpus, sub_corpus, s, t, (2000, 2000, 1000), True) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, te, corpus, sub_corpus, s, t, (2000, 2000, 1000), True) )  )
 
                 tr = f"trParent"
-                pipeline.append(  ( 'sample', (out_corpus, tr, out_corpus, teRemain, s, t, (200, 200, 100), False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, tr, out_corpus, teRemain, s, t, (200, 200, 100), False) )  )
 
                 #create variation
                 #te
-                pipeline.append(  ( 'sample', (out_corpus, "te-c3",   out_corpus, te, s, t, (1000, 1000, 30),   False) )  )
-                pipeline.append(  ( 'sample', (out_corpus, "te-c10",  out_corpus, te, s, t, (1000, 1000, 100),  False) )  )
-                pipeline.append(  ( 'sample', (out_corpus, "te-c30",  out_corpus, te, s, t, (1000, 1000, 300),  False) )  )
-                pipeline.append(  ( 'sample', (out_corpus, "te-c50",  out_corpus, te, s, t, (1000, 1000, 500),  False) )  )
-                pipeline.append(  ( 'sample', (out_corpus, "te-c75",  out_corpus, te, s, t, (1000, 1000, 750),  False) )  )
-                pipeline.append(  ( 'sample', (out_corpus, "te-c100", out_corpus, te, s, t, (1000, 1000, 1000), False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "te-c3",   out_corpus, te, s, t, (1000, 1000, 30),   False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "te-c10",  out_corpus, te, s, t, (1000, 1000, 100),  False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "te-c30",  out_corpus, te, s, t, (1000, 1000, 300),  False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "te-c50",  out_corpus, te, s, t, (1000, 1000, 500),  False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "te-c75",  out_corpus, te, s, t, (1000, 1000, 750),  False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "te-c100", out_corpus, te, s, t, (1000, 1000, 1000), False) )  )
                 #tr
-                pipeline.append(  ( 'sample', (out_corpus, "tr-c3",   out_corpus, tr, s, t, (100, 100, 3),   False) )  )
-                pipeline.append(  ( 'sample', (out_corpus, "tr-c10",  out_corpus, tr, s, t, (100, 100, 10),  False) )  )
-                pipeline.append(  ( 'sample', (out_corpus, "tr-c30",  out_corpus, tr, s, t, (100, 100, 30),  False) )  )
-                pipeline.append(  ( 'sample', (out_corpus, "tr-c50",  out_corpus, tr, s, t, (100, 100, 50),  False) )  )
-                pipeline.append(  ( 'sample', (out_corpus, "tr-c75",  out_corpus, tr, s, t, (100, 100, 75),  False) )  )
-                pipeline.append(  ( 'sample', (out_corpus, "tr-c100", out_corpus, tr, s, t, (100, 100, 100), False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tr-c3",   out_corpus, tr, s, t, (100, 100, 3),   False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tr-c10",  out_corpus, tr, s, t, (100, 100, 10),  False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tr-c30",  out_corpus, tr, s, t, (100, 100, 30),  False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tr-c50",  out_corpus, tr, s, t, (100, 100, 50),  False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tr-c75",  out_corpus, tr, s, t, (100, 100, 75),  False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tr-c100", out_corpus, tr, s, t, (100, 100, 100), False) )  )
 
     return pipeline
