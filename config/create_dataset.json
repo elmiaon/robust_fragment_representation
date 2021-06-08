@@ -1,12 +1,10 @@
 {
-    "setting":{
-        "0":{
-            "description": "default value for every component"
-        },
-        "1":{
-            "description": "some change"
-        }
-
+    "method_description":{
+        "CLSRs0": "sample 1000 testing, and 100 tuning with vaired number of non-pairing sentences",
+        "KFold0": "do 10-folds cross validation on the test set",
+        "QApara": "paragraph-level for QA",
+        "QAdoc" : "document-level for QA",
+        "CLSRQA": "do QA as CLSR"
     },
 
     "corpus":{
@@ -57,11 +55,11 @@
     },
 
     "pipeline":{
-        "JW300s0": {
-            "description": "default parameters, mom bless me",
-            "pipeline_list": "CLSR",
-            "exp_code_list": [0],
-            "corpus": "JW300"
+        "JW300":{
+            "method": "CLSRs0",
+            "corpus_list": "JW300",
+            "source_list": ["fr", "de", "th", "ar"],
+            "target_list": ["en"]
         }
     }
 }

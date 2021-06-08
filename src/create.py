@@ -30,9 +30,9 @@ def create_dataset(filename):
 
     for method, args in pipeline:
         logger.info(f"{method}: {args}")
-        if method == 'reformat':
+        if method == 'reformat_CLSR':
             reformat(args)
-        elif method == 'sample':
+        elif method == 'sample_CLSR':
             sample(args)
         else:
             raise ValueError('invalid create method')
