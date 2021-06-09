@@ -34,10 +34,17 @@
 
     "pipeline":{
         "JW300s0main": {
-            "description": "default parameters, mom bless me",
+            "description": "RFR-CLSR on sampled JW300 with default parameters for dev, mom bless me",
             "method": "RFR-CLSR",
             "setting_list": ["0"],
             "corpus": "JW300s0main"
+        },
+        "opuss0varyClose":{
+            "description": "RFR-CLSR on samples opus with default parameters",
+            "method": "RFR-CLSR",
+            "setting_list": ["0"],
+            "corpus": "opuss0varyClose"
         }
+        
     }
 }

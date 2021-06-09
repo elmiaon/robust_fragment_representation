@@ -22,61 +22,79 @@ punc = "！？｡。＂＃＄％＆＇（）＊＋，－／：；＜＝＞＠［
 punc2 = string.punctuation
 double_space = " ​ "
 
-def tokenize(args, root='data'):
-    corpus, sub_corpus, s, t = args
-    _, method, w2v, n_grams, fragment_size, sentence_len, s2v, s2v_args_list, _, _, _, _, _, _ = utils.get_experiment_setting(exp_code)
+def CLSR_tokenize(setting_code, corpus, sub_corpus, s, t, chunksize=10000):
+    _, tokenize_method, _, _, _ = utils.get_RFR_CLSR_setting(setting_code)
     logger = log.get_logger(__name__)
-    corpus_dir = f"{root}/tokenized/{corpus}/{sub_corpus}/{tokenize_method}"
-    utils.make_dir(corpus_dir)
-    s_fwd_output_dir = f"{root}/tokenized/{corpus}/{sub_corpus}/{tokenize_method}/{s}-{t}.{s}.csv"
-    t_fwd_output_dir = f"{root}/tokenized/{corpus}/{sub_corpus}/{tokenize_method}/{s}-{t}.{t}.csv"
-    g_fwd_output_dir = f"{root}/tokenized/{corpus}/{sub_corpus}/{tokenize_method}/{s}-{t}.gold.csv"
 
-    s_bwd_output_dir = f"{root}/tokenized/{corpus}/{sub_corpus}/{tokenize_method}/{t}-{s}.{s}.csv"
-    t_bwd_output_dir = f"{root}/tokenized/{corpus}/{sub_corpus}/{tokenize_method}/{t}-{s}.{t}.csv"
-    g_bwd_output_dir = f"{root}/tokenized/{corpus}/{sub_corpus}/{tokenize_method}/{t}-{s}.gold.csv"
+    # check the reformatted dataest
+    if os.path.isfile(f"data/reformatted/{corpus}/{sub_corpus}/{s}-{t}.{s}.csv") and \
+       os.path.isfile(f"data/reformatted/{corpus}/{sub_corpus}/{s}-{t}.{t}.csv"):
+        input_dir = {
+            s: f"data/reformatted/{corpus}/{sub_corpus}/{s}-{t}.{s}.csv",
+            t: f"data/reformatted/{corpus}/{sub_corpus}/{s}-{t}.{t}.csv"
+        }
+    elif os.path.isfile(f"data/reformatted/{corpus}/{sub_corpus}/{t}-{s}.{s}.csv") and \
+         os.path.isfile(f"data/reformatted/{corpus}/{sub_corpus}/{t}-{s}.{t}.csv"):
+        input_dir = {
+            s: f"data/reformatted/{corpus}/{sub_corpus}/{t}-{s}.{s}.csv",
+            t: f"data/reformatted/{corpus}/{sub_corpus}/{t}-{s}.{t}.csv"
+        }
+    else:
+        raise FileExistsError(f"There is no prepared {corpus}-{sub_corpus}")
 
-    s_check = os.path.isfile(s_fwd_output_dir) or os.path.isfile(s_bwd_output_dir)
-    t_check = os.path.isfile(t_fwd_output_dir) or os.path.isfile(t_bwd_output_dir)
-    g_check = os.path.isfile(g_fwd_output_dir) or os.path.isfile(g_bwd_output_dir)
+    # define output directory
+    utils.make_dir(f"data/tokenized/{corpus}/{sub_corpus}/{tokenize_method}")
+    output_dir_fwd = {
+        s: f"data/tokenized/{corpus}/{sub_corpus}/{tokenize_method}/{s}-{t}.{s}.csv",
+        t: f"data/tokenized/{corpus}/{sub_corpus}/{tokenize_method}/{s}-{t}.{t}.csv"
+    }
 
-    if not (s_check and t_check and g_check):
-        tic = time()
-        sdf, tdf, gdf = load_raw(corpus, sub_corpus, s, t)
-        toc = time()
-        logger.info(f"loading raw data from {corpus} - {sub_corpus} in {toc-tic:.2f} second(s)")
+    output_dir_bwd = {
+        s: f"data/tokenized/{corpus}/{sub_corpus}/{tokenize_method}/{t}-{s}.{s}.csv",
+        t: f"data/tokenized/{corpus}/{sub_corpus}/{tokenize_method}/{t}-{s}.{t}.csv"
+    }
 
-        if not s_check:
-            tic = time()
-            sdf = sdf.parallel_apply(tokenize_sentence, axis=1)
-            sdf = sdf.dropna()
-            sdf.to_csv(s_fwd_output_dir, index=False, sep='\t')
-            toc = time()
-            logger.info(f"prepare {s} dataset in {toc-tic:.2f} second(s)")
-            logger.info(f"sample: {sdf}")
+    # check output to skip
+    fwd_check = os.path.isfile(output_dir_fwd[s]) and os.path.isfile(output_dir_fwd[t])
+    bwd_check = os.path.isfile(output_dir_bwd[s]) and os.path.isfile(output_dir_bwd[t])
+
+    if not (fwd_check or bwd_check):
         
-        if not t_check:
-            tic = time()
-            tdf = tdf.parallel_apply(tokenize_sentence, axis=1)
-            tdf = tdf.dropna()
-            tdf.to_csv(t_fwd_output_dir, index=False, sep = '\t')
-            toc = time()
-            logger.info(f"prepare {t} dataset in {toc-tic:.2f} second(s)")
-            logger.info(f"sample: {tdf}")
-        
-        if not g_check:
-            tic = time()
-            gdf = gdf.loc[gdf[s].isin(sdf['id'].values) & gdf[t].isin(tdf['id'].values)]
-            gdf.to_csv(g_fwd_output_dir, index=False, sep='\t')
-            toc = time()
-            logger.info(f"prepare gold in {toc-tic:.2f} second(s)")
-            logger.info(f"sample: {gdf}")
+        if tokenize_method == 'RFR':
+            tokenizer = RFR_tokenize
+        else:
+            raise ValueError(f"invalid tokenizer")
 
+        for lang in [s, t]:
+            in_dir = input_dir[lang]
+            out_dir = output_dir_fwd[lang]
 
-def tokenize_sentence(row):
+            if not os.path.isfile(out_dir):
+                tokenized_list = []
+
+                for idx_chunk, chunk in enumerate(pd.read_csv(in_dir, sep='\t', chunksize=chunksize)):
+                    tokenized_list.append(tokenizer(chunk))
+                    print(f"finish {s}-{t}.{lang} part {idx_chunk+1} tokenization")
+                    
+                df = pd.concat(tokenized_list, ignore_index=True)
+                df.to_csv(out_dir, sep='\t', index=False)
+            
+                logger.info(f"finish {corpus}-{sub_corpus}.{s}-{t}.{lang} tokenzation")
+                logger.info(f"sample:\n{df}")
+            
+            else:
+                logger.info(f"skip {corpus}-{sub_corpus}.{s}-{t}.{lang} tokenzation")
+    else:
+        logger.info(f"skip {corpus}-{sub_corpus}.{s}-{t} tokenization")
+
+def RFR_tokenize(df):
+    sid, lang = df.columns
+    df[lang] = df[lang].parallel_apply(RFR_tokenize_sentence, args=(lang,))
+    df = df.dropna()
+    return df
+
+def RFR_tokenize_sentence(sentence, lang):
     global punc, punc2, double_space
-    sid, lang = row.index
-    sentence = row.pop(lang)
     sentence = sentence.strip('\n')
     sentence = sentence.lower()
     # remove punctuation
@@ -89,11 +107,10 @@ def tokenize_sentence(row):
     else:
         sentence= word_tokenize(sentence, engine='newmm')
         sentence = [i for i in sentence if i != ' ']
-        if len(sentence) == 0:
-            row[sid], row[lang] = None, None
+        if len(sentence)==0:
+            return None
 
     if len(sentence) == 1 and sentence[0]=='':
-        row[sid], row[lang] = None, None
+        return None
     else:
-        row[lang] = sentence
-    return row
+        return sentence

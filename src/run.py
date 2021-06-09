@@ -14,7 +14,7 @@ import src.log as log
 from time import time
 # custom lib
 import src.utils as utils
-import src.run as run
+import src.tokenize as tokenize
 
 ##################################################
 ### run experiment                             ###
@@ -136,14 +136,14 @@ def RFR_CLSR(args):
 
     logger.info(f"{setting}")
 
-    # #####
-    # # 1.) Preprocess training dataset
-    # #####
-    # tic = time()
-    # preprocess.preprocess(EXP_CODE, TRAIN_CORPUS, TRAIN_SUB_CORPUS, S, T)
-    # toc = time()
-    # logger.info(f"step {step}/{n_steps} - preprocess training data in {toc-tic:.2f} second(s)")
-    # step+=1
+    #####
+    # 1.) Preprocess training dataset
+    #####
+    tic = time()
+    tokenize.CLSR_tokenize(SETTING_CODE, TRAIN_CORPUS, TRAIN_SUB_CORPUS, S, T)
+    toc = time()
+    logger.info(f"step {step}/{n_steps} - preprocess training data in {toc-tic:.2f} second(s)")
+    step+=1
 
     # #####
     # # 2.) Retrieve the candidates
