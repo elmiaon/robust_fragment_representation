@@ -19,7 +19,7 @@ import src.sample_CLSR as sample_CLSR
 ##################################################
 ### create dataset                             ###
 ##################################################
-def create_dataset(filename):
+def create(filename):
     '''
     create dataset from setting in filename
     input : filename
@@ -47,11 +47,11 @@ def get_create_pipeline(filename:str):
     output: create dataset pipeline ((method), (args))
     '''
     setting_name = get_filename_setting(filename) # get setting_name from filename
-    with open('config/create_dataset.json') as f: # load setting json
+    with open('config/create.json') as f: # load setting json
         setting_dict = json.load(f)
     if not setting_name in setting_dict['pipeline'].keys(): # check setting existance
         raise ValueError('there is no setting for this setting_name')
-    method, corpus, source_language_list, target_language_list = setting_parser(setting_dict['pipeline'][setting_name]) # get create from setting
+    method, corpus, source_language_list, target_language_list = setting_parser(setting_dict['pipeline'][setting_name]) # get create setting from setting name
     corpus_list = setting_dict['corpus'][corpus] # get corpus list
     if method == 'CLSRs0':
         pipeline = get_CLSRs0_pipeline
@@ -62,7 +62,7 @@ def get_create_pipeline(filename:str):
 def get_filename_setting(filename:str):
     '''
     get setting name from filename with checking filename format
-    input: filename(str) with format "create.{alias}.py"
+    input: filename(str) with format "create.[alias].py"
     output: setting_name
     '''
     create, setting_name, py = filename.split('.')

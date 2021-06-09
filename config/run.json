@@ -1,0 +1,43 @@
+{
+    "corpus":{
+        "JW300s0main":[
+            ["opus-JW300-CLSRs0"  , "tr-c50", "opus-JW300-CLSRs0"  , "te-c50"]
+        ],
+
+        "opuss0Main": [
+            ["opus-JW300-CLSRs0"  , "tr-c50", "opus-JW300-CLSRs0"  , "te-c50"],
+            ["opus-QED-CLSRs0"    , "tr-c50", "opus-QED-CLSRs0"    , "te-c50"],
+            ["opus-TED2020-CLSRs0", "tr-c50", "opus-TED2020-CLSRs0", "te-c50"]
+        ],
+    
+        "opuss0varyClose": [
+            ["opus-JW300-CLSRs0"  , "tr-c3"  , "opus-JW300-CLSRs0"  , "te-c3"],
+            ["opus-JW300-CLSRs0"  , "tr-c10" , "opus-JW300-CLSRs0"  , "te-c10"],
+            ["opus-JW300-CLSRs0"  , "tr-c30" , "opus-JW300-CLSRs0"  , "te-c30"],
+            ["opus-JW300-CLSRs0"  , "tr-c50" , "opus-JW300-CLSRs0"  , "te-c50"],
+            ["opus-JW300-CLSRs0"  , "tr-c75" , "opus-JW300-CLSRs0"  , "te-c75"],
+            ["opus-JW300-CLSRs0"  , "tr-c100", "opus-JW300-CLSRs0"  , "te-c100"],
+            ["opus-QED-CLSRs0"    , "tr-c3"  , "opus-QED-CLSRs0"    , "te-c3"],
+            ["opus-QED-CLSRs0"    , "tr-c10" , "opus-QED-CLSRs0"    , "te-c10"],
+            ["opus-QED-CLSRs0"    , "tr-c30" , "opus-QED-CLSRs0"    , "te-c30"],
+            ["opus-QED-CLSRs0"    , "tr-c50" , "opus-QED-CLSRs0"    , "te-c50"],
+            ["opus-QED-CLSRs0"    , "tr-c75" , "opus-QED-CLSRs0"    , "te-c75"],
+            ["opus-QED-CLSRs0"    , "tr-c100", "opus-QED-CLSRs0"    , "te-c100"],
+            ["opus-TED2020-CLSRs0", "tr-c3"  , "opus-TED2020-CLSRs0", "te-c3"],
+            ["opus-TED2020-CLSRs0", "tr-c10" , "opus-TED2020-CLSRs0", "te-c10"],
+            ["opus-TED2020-CLSRs0", "tr-c30" , "opus-TED2020-CLSRs0", "te-c30"],
+            ["opus-TED2020-CLSRs0", "tr-c50" , "opus-TED2020-CLSRs0", "te-c50"],
+            ["opus-TED2020-CLSRs0", "tr-c75" , "opus-TED2020-CLSRs0", "te-c75"],
+            ["opus-TED2020-CLSRs0", "tr-c100", "opus-TED2020-CLSRs0", "te-c100"]
+        ]
+    },
+
+    "pipeline":{
+        "JW300s0main": {
+            "description": "default parameters, mom bless me",
+            "method": "RFR-CLSR",
+            "setting_list": ["0"],
+            "corpus": "JW300s0main"
+        }
+    }
+}

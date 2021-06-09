@@ -1,0 +1,25 @@
+{
+    "setting":{
+        "0": {"description": "default value for every component"}
+    },
+
+    "representation_setting":{
+        "RFR":{
+            "0": {"description": "default for RFR: base_encoder=USE, n_grams=6"}
+        }
+    },
+
+    "aggregate_setting":{
+        "RFR":{
+            "0": {"description": "default range for RFR aggregator"},
+            "1": {
+                "description": "full range of tuning",
+                "kNN": [5, 51, 5],
+                "beta": [0, 101, 5],
+                "p_min_entropy": [0, 1, 11],
+                "p_top": [0.1, 1, 10],
+                "n_ans": 10
+            }
+        }
+    }
+}
