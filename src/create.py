@@ -13,17 +13,17 @@ import src.log as log
 from time import time
 # custom lib
 import src.utils as utils
-import src.reformat_CLSR as reformat_CLSR
-import src.sample_CLSR as sample_CLSR
+import src.reformat as reformat_CLSR
+import src.sample as sample_CLSR
 
 ##################################################
 ### create dataset                             ###
 ##################################################
-def create(filename):
+def create(filename:str):
     '''
     create dataset from setting in filename
-    input : filename
-    output: reformatted dataset saved in data/reformatted/ directory
+    input : filename(str) - dataset filename in create.[dataset].py format
+    output: reformatted dataset files(csv) - saved in data/reformatted/ directory
     '''
     logger = log.get_logger(__name__)
     pipeline = get_create_pipeline(filename)
@@ -43,8 +43,8 @@ def create(filename):
 def get_create_pipeline(filename:str):
     '''
     get create dataset pipeline
-    input : filename(str) with "create.{dataset}.py" format
-    output: create dataset pipeline ((method), (args))
+    input : filename(str) - dataset filename in create.[dataset].py format
+    output: create dataset pipeline(tuple) - pipeline tuple for create dataset with ((method), (args)) format
     '''
     setting_name = get_filename_setting(filename) # get setting_name from filename
     with open('config/create.json') as f: # load setting json
@@ -62,8 +62,8 @@ def get_create_pipeline(filename:str):
 def get_filename_setting(filename:str):
     '''
     get setting name from filename with checking filename format
-    input: filename(str) with format "create.[alias].py"
-    output: setting_name
+    input: filename(str) - dataset filename in create.[dataset].py format
+    output: setting_name(str) - setting_name to get a setting dict
     '''
     create, setting_name, py = filename.split('.')
     if create != 'create' or py != 'py':
@@ -72,9 +72,9 @@ def get_filename_setting(filename:str):
 
 def setting_parser(setting:dict):
     '''
-    parsing and cheking the setting_dict 
-    input : setting_dict
-    output: create dataset parameter
+    parsing and cheking the setting_dict to get create dataset parameters
+    input : setting_dict(dict) - setting_dict from setting_name
+    output: create dataset parameters(tuple) - parameters to get a create dataset pipeline
     '''
     keys = setting.keys()
     if 'method' in keys:
@@ -102,19 +102,27 @@ def setting_parser(setting:dict):
 ##################################################
 ### pipeline                                   ###
 ##################################################
-def get_CLSRs0_pipeline(corpus_list, source_language_list, target_language_list):
+def get_CLSRs0_pipeline(corpus_list:list, source_language_list:list, target_language_list:list):
+    '''
+    get create CLSRs0 pipeline
+    input : 
+        corpus_list(list) - list of corpus to create in [[corpus, sub_corpus]] format
+        source_language_list(list) - list of source language
+        target_language_list(list) - list of target language
+    output: CLSRs0 pipeline(list) - pipeline for create the desire dataset in [ ( method, (arg) ) ] format
+    '''
     pipeline = []
-    for corpus, sub_corpus in corpus_list:
-        for s in source_language_list:
-            for t in target_language_list:
+    for corpus, sub_corpus in corpus_list: # for in corpus_list
+        for s in source_language_list: # for in source_language_list
+            for t in target_language_list: # for in target_language_list
                 pipeline.append(  ( 'reformat_CLSR', (corpus, sub_corpus, s, t) )  ) # reformat the original corpus
 
                 out_corpus = f"{corpus}-{sub_corpus}-CLSRs0"
-                te = f"teParent" # main test set for sample
+                te = f"teParent" # main test set to be sampled
                 teRemain = f"{te}Remain" # the remain for create the tuning set
                 pipeline.append(  ( 'sample_CLSR', (out_corpus, te, corpus, sub_corpus, s, t, (2000, 2000, 1000), True) )  )
 
-                tr = f"trParent"
+                tr = f"trParent" # main tuning set to be sampled
                 pipeline.append(  ( 'sample_CLSR', (out_corpus, tr, out_corpus, teRemain, s, t, (200, 200, 100), False) )  )
 
                 #create variation
