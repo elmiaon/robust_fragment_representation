@@ -74,7 +74,7 @@ def setting_parser(setting:dict):
     '''
     parsing and cheking the setting_dict to get create dataset parameters
     input : setting_dict(dict) - setting_dict from setting_name
-    output: create dataset parameters(tuple) - parameters to get a create dataset pipeline composed with
+    output: create dataset parameters(tuple) - parameters to get a create dataset pipeline composed of
         method(str) - method to get create pipeline
         corpus(str) - corpus_name to get corpus_list
         source_list(list) - list of source language to be create
