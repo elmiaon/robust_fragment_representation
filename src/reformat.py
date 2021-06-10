@@ -20,7 +20,7 @@ import src.utils as utils
 def reformat_CLSR(args:tuple):
     '''
     reformat for CLSR dataset
-    input : args tuple composed of
+    input : args(tuple) composed of
         corpus(str), sub_corpus(str) - corpus and sub corpus to be reformatted
         s(str), t(str) - source and target language to be reformatted, respectively
     output: reformatted dataset files(csv) - saved in data/reformatted/ directory

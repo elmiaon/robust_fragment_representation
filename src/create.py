@@ -127,7 +127,7 @@ def get_CLSRs0_pipeline(corpus_list:list, source_language_list:list, target_lang
                 pipeline.append(  ( 'sample_CLSR', (out_corpus, te, corpus, sub_corpus, s, t, (2000, 2000, 1000), True) )  )
 
                 tu = f"tuParent" # main tuning set to be sampled
-                pipeline.append(  ( 'sample_CLSR', (out_corpus, tu, out_corpus, teRemain, s, t, (200, 200, 100), False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, tu, out_corpus, teRemain, s, t, (200, 200, 100), True) )  )
 
                 #create variation
                 #te
