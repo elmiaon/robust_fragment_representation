@@ -74,7 +74,11 @@ def setting_parser(setting:dict):
     '''
     parsing and cheking the setting_dict to get create dataset parameters
     input : setting_dict(dict) - setting_dict from setting_name
-    output: create dataset parameters(tuple) - parameters to get a create dataset pipeline
+    output: create dataset parameters(tuple) - parameters to get a create dataset pipeline composed with
+        method(str) - method to get create pipeline
+        corpus(str) - corpus_name to get corpus_list
+        source_list(list) - list of source language to be create
+        target_list(list) - list of target language to be create
     '''
     keys = setting.keys()
     if 'method' in keys:
@@ -82,8 +86,8 @@ def setting_parser(setting:dict):
     else:
         raise ValueError('missing create method')
 
-    if 'corpus_list' in keys:
-        corpus_list = setting['corpus_list']
+    if 'corpus' in keys:
+        corpus = setting['corpus']
     else:
         raise ValueError('missing corpus_list')
     
@@ -97,7 +101,7 @@ def setting_parser(setting:dict):
     else:
         raise ValueError('missing target_list')
 
-    return (method, corpus_list, source_list, target_list)
+    return (method, corpus, source_list, target_list)
 
 ##################################################
 ### pipeline                                   ###
@@ -122,8 +126,8 @@ def get_CLSRs0_pipeline(corpus_list:list, source_language_list:list, target_lang
                 teRemain = f"{te}Remain" # the remain for create the tuning set
                 pipeline.append(  ( 'sample_CLSR', (out_corpus, te, corpus, sub_corpus, s, t, (2000, 2000, 1000), True) )  )
 
-                tr = f"trParent" # main tuning set to be sampled
-                pipeline.append(  ( 'sample_CLSR', (out_corpus, tr, out_corpus, teRemain, s, t, (200, 200, 100), False) )  )
+                tu = f"tuParent" # main tuning set to be sampled
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, tu, out_corpus, teRemain, s, t, (200, 200, 100), False) )  )
 
                 #create variation
                 #te
@@ -134,11 +138,11 @@ def get_CLSRs0_pipeline(corpus_list:list, source_language_list:list, target_lang
                 pipeline.append(  ( 'sample_CLSR', (out_corpus, "te-c75",  out_corpus, te, s, t, (1000, 1000, 750),  False) )  )
                 pipeline.append(  ( 'sample_CLSR', (out_corpus, "te-c100", out_corpus, te, s, t, (1000, 1000, 1000), False) )  )
                 #tr
-                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tr-c3",   out_corpus, tr, s, t, (100, 100, 3),   False) )  )
-                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tr-c10",  out_corpus, tr, s, t, (100, 100, 10),  False) )  )
-                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tr-c30",  out_corpus, tr, s, t, (100, 100, 30),  False) )  )
-                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tr-c50",  out_corpus, tr, s, t, (100, 100, 50),  False) )  )
-                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tr-c75",  out_corpus, tr, s, t, (100, 100, 75),  False) )  )
-                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tr-c100", out_corpus, tr, s, t, (100, 100, 100), False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tu-c3",   out_corpus, tu, s, t, (100, 100, 3),   False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tu-c10",  out_corpus, tu, s, t, (100, 100, 10),  False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tu-c30",  out_corpus, tu, s, t, (100, 100, 30),  False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tu-c50",  out_corpus, tu, s, t, (100, 100, 50),  False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tu-c75",  out_corpus, tu, s, t, (100, 100, 75),  False) )  )
+                pipeline.append(  ( 'sample_CLSR', (out_corpus, "tu-c100", out_corpus, tu, s, t, (100, 100, 100), False) )  )
 
     return pipeline
