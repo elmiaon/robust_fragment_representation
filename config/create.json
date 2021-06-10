@@ -57,13 +57,13 @@
     "pipeline":{
         "JW300":{
             "method": "CLSRs0",
-            "corpus_list": "JW300",
+            "corpus": "JW300",
             "source_list": ["fr", "de", "th", "ar"],
             "target_list": ["en"]
         },
         "opus":{
             "method": "CLSRs0",
-            "corpus_list": "opus",
+            "corpus": "opus",
             "source_list": ["fr", "de", "th", "ar"],
             "target_list": ["en"]
         }
