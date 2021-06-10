@@ -44,31 +44,32 @@ def CLSR_tokenize(setting_code:int, corpus:str, sub_corpus:str, s:str, t:str, ch
     logger = log.get_logger(__name__)
 
     # check the reformatted dataset to be tokenized
-    if os.path.isfile(f"data/reformatted/{corpus}/{sub_corpus}/{s}-{t}.{s}.csv") and \
-       os.path.isfile(f"data/reformatted/{corpus}/{sub_corpus}/{s}-{t}.{t}.csv"):
+    input_corpus_dir = f"data/reformatted/{corpus}/{sub_corpus}" # define input dir
+    if os.path.isfile(f"{input_corpus_dir}/{s}-{t}.{s}.csv") and \
+       os.path.isfile(f"{input_corpus_dir}/{s}-{t}.{t}.csv"):
         input_dir = {
-            s: f"data/reformatted/{corpus}/{sub_corpus}/{s}-{t}.{s}.csv",
-            t: f"data/reformatted/{corpus}/{sub_corpus}/{s}-{t}.{t}.csv"
+            s: f"{input_corpus_dir}/{s}-{t}.{s}.csv",
+            t: f"{input_corpus_dir}/{s}-{t}.{t}.csv"
         }
-    elif os.path.isfile(f"data/reformatted/{corpus}/{sub_corpus}/{t}-{s}.{s}.csv") and \
-         os.path.isfile(f"data/reformatted/{corpus}/{sub_corpus}/{t}-{s}.{t}.csv"):
+    elif os.path.isfile(f"{input_corpus_dir}/{t}-{s}.{s}.csv") and \
+         os.path.isfile(f"{input_corpus_dir}/{t}-{s}.{t}.csv"):
         input_dir = {
-            s: f"data/reformatted/{corpus}/{sub_corpus}/{t}-{s}.{s}.csv",
-            t: f"data/reformatted/{corpus}/{sub_corpus}/{t}-{s}.{t}.csv"
+            s: f"{input_corpus_dir}/{t}-{s}.{s}.csv",
+            t: f"{input_corpus_dir}/{t}-{s}.{t}.csv"
         }
     else: # error if there is no reformatted file
         raise FileExistsError(f"There is no reformatted {corpus}-{sub_corpus}")
 
-    # define output directory
-    utils.make_dir(f"data/tokenized/{corpus}/{sub_corpus}/{tokenize_method}")
+    output_corpus_dir = f"data/tokenized/{corpus}/{sub_corpus}/{tokenize_method}" # define output dir
+    utils.make_dir(f"{output_corpus_dir}") # create output dir
     output_dir_fwd = { # output from {s}->{t}
-        s: f"data/tokenized/{corpus}/{sub_corpus}/{tokenize_method}/{s}-{t}.{s}.csv",
-        t: f"data/tokenized/{corpus}/{sub_corpus}/{tokenize_method}/{s}-{t}.{t}.csv"
+        s: f"{output_corpus_dir}/{s}-{t}.{s}.csv",
+        t: f"{output_corpus_dir}/{s}-{t}.{t}.csv"
     }
 
     output_dir_bwd = { # output from {t}->{s}
-        s: f"data/tokenized/{corpus}/{sub_corpus}/{tokenize_method}/{t}-{s}.{s}.csv",
-        t: f"data/tokenized/{corpus}/{sub_corpus}/{tokenize_method}/{t}-{s}.{t}.csv"
+        s: f"{output_corpus_dir}/{t}-{s}.{s}.csv",
+        t: f"{output_corpus_dir}/{t}-{s}.{t}.csv"
     }
 
     # check output to skip
