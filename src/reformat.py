@@ -28,8 +28,8 @@ def reformat_CLSR(args:tuple):
     corpus, sub_corpus, s, t = args # unpack args
 
     logger = log.get_logger(__name__) # get logger instance
-    corpus_dir = f"data/reformatted/{corpus}/{sub_corpus}" # define output dir
-    utils.make_dir(corpus_dir) # create output dir
+    output_dir = f"data/reformatted/{corpus}/{sub_corpus}" # define output dir
+    utils.make_dir(output_dir) # create output dir
 
     # fwd output dir to store the reformatted and check existance
     s_fwd_output_dir = f"{output_dir}/{s}-{t}.{s}.csv"

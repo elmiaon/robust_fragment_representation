@@ -38,19 +38,11 @@ def sample_CLSR(args:tuple):
     if os.path.isfile(f"{input_corpus_dir}/{s}-{t}.{s}.csv") and \
        os.path.isfile(f"{input_corpus_dir}/{s}-{t}.{t}.csv") and \
        os.path.isfile(f"{input_corpus_dir}/{s}-{t}.gold.csv"):
-        input_dir = {
-            s: f"{input_corpus_dir}/{s}-{t}.{s}.csv",
-            t: f"{input_corpus_dir}/{s}-{t}.{t}.csv",
-            g: f"{input_corpus_dir}/{s}-{t}.gold.csv"
-        }
+        pass
     elif os.path.isfile(f"{input_corpus_dir}/{t}-{s}.{s}.csv") and \
          os.path.isfile(f"{input_corpus_dir}/{t}-{s}.{t}.csv") and \
          os.path.isfile(f"{input_corpus_dir}/{t}-{s}.gold.csv"):
-        input_dir = {
-            s: f"{input_corpus_dir}/{t}-{s}.{s}.csv",
-            t: f"{input_corpus_dir}/{t}-{s}.{t}.csv",
-            g: f"{input_corpus_dir}/{t}-{s}.gold.csv"
-        }
+        pass
     else: # error if there is no reformatted file
         raise FileExistsError(f"There is no reformatted {corpus}-{sub_corpus}")
 
