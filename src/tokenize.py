@@ -82,6 +82,7 @@ def check_input(corpus:str, sub_corpus:str, s:str, t:str):
     '''
     # check the reformatted dataset to be tokenized
     input_corpus_dir = f"data/reformatted/{corpus}/{sub_corpus}" # define input dir
+    
     input_dir_fwd = {
         s: f"{input_corpus_dir}/{s}-{t}.{s}.csv",
         t: f"{input_corpus_dir}/{s}-{t}.{t}.csv"
@@ -96,8 +97,8 @@ def check_input(corpus:str, sub_corpus:str, s:str, t:str):
         return input_dir_fwd
     elif os.path.isfile(input_dir_bwd[s]) and os.path.isfile(input_dir_bwd[t]):
         return input_dir_bwd
-    else: # error if there is no reformatted file
-        raise FileExistsError(f"There is no reformatted {corpus}-{sub_corpus}")
+    else: # error if there is no tokenized file
+        raise FileExistsError(f"There is no tokenized {corpus}-{sub_corpus}")
     
 ##################################################
 ### CLSR_tokenize                              ###
