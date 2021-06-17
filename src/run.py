@@ -15,6 +15,7 @@ from time import time
 # custom lib
 import src.utils as utils
 import src.tokenize as tokenize
+import src.represent as represent
 
 ##################################################
 ### run experiment                             ###
@@ -139,7 +140,7 @@ def RFR_CLSR(args):
     '''
     logger = log.get_logger(__name__)
     SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, TEST_CORPUS, TEST_SUB_CORPUS, S, T = args # unpack args
-    DESCRIPTION, TOKENIZE_METHOD, REPRESENT_METHOD, RETRIEVE_METHOD, AGGREGATE_METHOD = utils.get_RFR_CLSR_setting(SETTING_CODE) # get experiment setting from setting_code
+    DESCRIPTION, TOKENIZE_METHOD, REPRESENT_METHOD, RETRIEVE_METHOD, AGGREGATE_METHOD = utils.get_experiment_setting(SETTING_CODE) # get experiment setting from setting_code
     n_steps = 8 # total number of steps to track the progress
 
     logger = log.get_logger(__name__) # get logger instance
@@ -168,7 +169,7 @@ def RFR_CLSR(args):
     # 1.) tokenize the training dataset
     #####
     tic = time()
-    tokenize.CLSR_tokenize(SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
+    tokenize.CLSR(SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
     toc = time()
     logger.info(f"step {step}/{n_steps} - preprocess training data in {toc-tic:.2f} second(s)")
     step+=1
@@ -177,19 +178,19 @@ def RFR_CLSR(args):
     # 2.) Represent the training dataset
     #####
     tic = time()
-    represent.CLSR_represent(SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
+    represent.CLSR(SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
     toc = time()
     logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
     step+=1
 
-    #####
-    # 3.) Retrieve the training dataset
-    #####
-    tic = time()
-    retrieve.retrieve(SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
-    toc = time()
-    logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
-    step+=1
+    # #####
+    # # 3.) Retrieve the training dataset
+    # #####
+    # tic = time()
+    # retrieve.retrieve(SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
+    # toc = time()
+    # logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
+    # step+=1
 
 
     # #####
