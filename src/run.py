@@ -16,6 +16,7 @@ from time import time
 import src.utils as utils
 import src.tokenize as tokenize
 import src.represent as represent
+import src.retrieve as retrieve
 
 ##################################################
 ### run experiment                             ###
@@ -183,14 +184,14 @@ def RFR_CLSR(args):
     logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
     step+=1
 
-    # #####
-    # # 3.) Retrieve the training dataset
-    # #####
-    # tic = time()
-    # retrieve.retrieve(SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
-    # toc = time()
-    # logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
-    # step+=1
+    #####
+    # 3.) Retrieve the training dataset
+    #####
+    tic = time()
+    retrieve.CLSR(SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
+    toc = time()
+    logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
+    step+=1
 
 
     # #####
