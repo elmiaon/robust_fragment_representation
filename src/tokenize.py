@@ -27,39 +27,25 @@ punc = "！？｡。＂＃＄％＆＇（）＊＋，－／：；＜＝＞＠［
 punc2 = string.punctuation # common punctuation
 double_space = " ​ " # double space in Thai
 
-
 ##################################################
-### CLSR_tokenize                              ###
+### check input and output                     ###
 ##################################################
-def CLSR_tokenize(setting_code:int, corpus:str, sub_corpus:str, s:str, t:str, chunksize=10000:int):
+def check_output(corpus:str, sub_corpus:str, s:str, t:str, tokenize_method:str):
     '''
-    tokenize sentences in the corpus
-    input : 
-        setting_code(int) - setting_code to get the experiment parameter
-        corpus(str), sub_corpus(str) - corpus and sub corpus to be tokenzied
-        s(str), t(str) - source and target language to be tokenized, respectively
-    output: tokenized dataset files(csv) - saved in data/tokenized/ directory
+    checking output for skip
+    parameters
+    ----------
+    corpus: string.
+    sub_corpus: string.
+    tokenize_method: string.
+    s: source language
+    t: target language
+
+    returns
+    -------
+    skip: bool. skip boolean to skip the tokenized process
+    output_dir: list. output dict for save the tokenized sentences
     '''
-    _, tokenize_method, _, _, _ = utils.get_RFR_CLSR_setting(setting_code)
-    logger = log.get_logger(__name__)
-
-    # check the reformatted dataset to be tokenized
-    input_corpus_dir = f"data/reformatted/{corpus}/{sub_corpus}" # define input dir
-    if os.path.isfile(f"{input_corpus_dir}/{s}-{t}.{s}.csv") and \
-       os.path.isfile(f"{input_corpus_dir}/{s}-{t}.{t}.csv"):
-        input_dir = {
-            s: f"{input_corpus_dir}/{s}-{t}.{s}.csv",
-            t: f"{input_corpus_dir}/{s}-{t}.{t}.csv"
-        }
-    elif os.path.isfile(f"{input_corpus_dir}/{t}-{s}.{s}.csv") and \
-         os.path.isfile(f"{input_corpus_dir}/{t}-{s}.{t}.csv"):
-        input_dir = {
-            s: f"{input_corpus_dir}/{t}-{s}.{s}.csv",
-            t: f"{input_corpus_dir}/{t}-{s}.{t}.csv"
-        }
-    else: # error if there is no reformatted file
-        raise FileExistsError(f"There is no reformatted {corpus}-{sub_corpus}")
-
     output_corpus_dir = f"data/tokenized/{corpus}/{sub_corpus}/{tokenize_method}" # define output dir
     utils.make_dir(f"{output_corpus_dir}") # create output dir
     output_dir_fwd = { # output from {s}->{t}
@@ -73,53 +59,120 @@ def CLSR_tokenize(setting_code:int, corpus:str, sub_corpus:str, s:str, t:str, ch
     }
 
     # check output to skip
-    fwd_check = os.path.isfile(output_dir_fwd[s]) and os.path.isfile(output_dir_fwd[t])
-    bwd_check = os.path.isfile(output_dir_bwd[s]) and os.path.isfile(output_dir_bwd[t])
+    if os.path.isfile(output_dir_fwd[s]) and os.path.isfile(output_dir_fwd[t]):
+        return True, output_dir_fwd
+    elif os.path.isfile(output_dir_bwd[s]) and os.path.isfile(output_dir_bwd[t]):
+        return True, output_dir_bwd
+    else:
+        return False, output_dir_fwd
 
-    if not (fwd_check or bwd_check):
-        
-        # select tokenizer
-        if tokenize_method == 'RFR':
-            tokenizer = RFR_tokenize
-        else:
-            raise ValueError(f"invalid tokenizer")
+def check_input(corpus:str, sub_corpus:str, s:str, t:str):
+    '''
+    checking input
+    parameters
+    ----------
+    corpus: string.
+    sub_corpus: string.
+    s: source language
+    t: target language
+
+    returns
+    -------
+    input_dir: list. output dict for save the tokenized sentences
+    '''
+    # check the reformatted dataset to be tokenized
+    input_corpus_dir = f"data/reformatted/{corpus}/{sub_corpus}" # define input dir
+    input_dir_fwd = {
+        s: f"{input_corpus_dir}/{s}-{t}.{s}.csv",
+        t: f"{input_corpus_dir}/{s}-{t}.{t}.csv"
+    }
+    
+    input_dir_bwd = {
+        s: f"{input_corpus_dir}/{t}-{s}.{s}.csv",
+        t: f"{input_corpus_dir}/{t}-{s}.{t}.csv"
+    }
+
+    if os.path.isfile(input_dir_fwd[s]) and os.path.isfile(input_dir_fwd[t]):
+        return input_dir_fwd
+    elif os.path.isfile(input_dir_bwd[s]) and os.path.isfile(input_dir_bwd[t]):
+        return input_dir_bwd
+    else: # error if there is no reformatted file
+        raise FileExistsError(f"There is no reformatted {corpus}-{sub_corpus}")
+    
+##################################################
+### CLSR_tokenize                              ###
+##################################################
+def CLSR(setting_code:int, corpus:str, sub_corpus:str, s:str, t:str, chunksize:int=10000):
+    '''
+    tokenize sentences in the corpus
+    input : 
+        setting_code(int) - setting_code to get the experiment parameter
+        corpus(str), sub_corpus(str) - corpus and sub corpus to be tokenzied
+        s(str), t(str) - source and target language to be tokenized, respectively
+    output: tokenized dataset files(csv) - saved in data/tokenized/ directory
+    '''
+    _, tokenize_method, _, _, _ = utils.get_experiment_setting(setting_code)
+    logger = log.get_logger(__name__)
+
+    # ckeck output existance
+    skip, output_dir = check_output(corpus, sub_corpus, s, t, tokenize_method)
+
+    if not skip:
+
+        # check the reformatted dataset to be tokenized
+        input_dir = check_input(corpus, sub_corpus, s, t)
 
         # tokenize {s} and {t} corpus
         for lang in [s, t]:
             in_dir = input_dir[lang] # define input dir for the specific language
-            out_dir = output_dir_fwd[lang] # define output dir for the specific language
+            out_dir = output_dir[lang] # define output dir for the specific language
 
             if not os.path.isfile(out_dir):
                 tokenized_list = [] # define to store tokenized chunk
 
                 for idx_chunk, chunk in enumerate(pd.read_csv(in_dir, sep='\t', chunksize=chunksize)): # read csv chunk-by-chunk
-                    tokenized_list.append(tokenizer(chunk)) # tokenize each chunk
+                    tokenized_list.append(CLSR_tokenizer(chunk, tokenize_method)) # tokenize each chunk
                     print(f"finish {s}-{t}.{lang} part {idx_chunk+1} tokenization") # print to tell the status of each chunk
                     
                 df = pd.concat(tokenized_list, ignore_index=True) # concatenate all chunk
                 df.to_csv(out_dir, sep='\t', index=False) # save the tokenized
             
-                logger.info(f"finish {corpus}-{sub_corpus}.{s}-{t}.{lang} tokenzation") # log the time
+                logger.info(f"finish {corpus}-{sub_corpus}.{s}-{t}.{lang} tokenzation")
                 logger.info(f"sample:\n{df}") # show some sample
             
             else:
-                logger.info(f"skip {corpus}-{sub_corpus}.{s}-{t}.{lang} tokenzation") # the tokenized step for specific language is skipped
+                logger.info(f"skip {corpus}-{sub_corpus}.{s}-{t}.{lang} tokenzation") # the tokenize step for specific language is skipped
     else:
-        logger.info(f"skip {corpus}-{sub_corpus}.{s}-{t} tokenization") # the tokenized step is skipped
+        logger.info(f"skip {corpus}-{sub_corpus}.{s}-{t} tokenization") # the tokenize step is skipped
 
 ##################################################
 ### tokenize method                            ###
 ##################################################
 
-### RFR ###
-def RFR_tokenize(df:pd.dataFrame):
+### CLSR_tokenizer ###
+def CLSR_tokenizer(df, tokenize_method:str):
     '''
-    RFR tokenize for input dataframe
-    input : df(dataframe) - dataframe to be tokenized with [id, {language}] as columns
-    output: tokenized dataframe(df) - tokenized dataframe with dropped Nan
+    CLSR tokenize for input dataframe
+
+    parameters
+    ----------
+    df: dataframe. dataframe to be tokenized with [id, {language}] as columns
+    tokenize_method: string
+
+    returns
+    -------
+    tokenized_dataframe: dataframe. tokenized dataframe with dropped Nan
     '''
     sid, lang = df.columns # get each column to indicate the input language
-    df[lang] = df[lang].parallel_apply(RFR_tokenize_sentence, args=(lang,)) # tokenize each sentence
+
+    # select tokenizer
+    if tokenize_method == 'RFR':
+        tokenizer = RFR_tokenize_sentence
+        args = [lang]
+    else:
+        raise ValueError(f"invalid tokenizer")
+
+    df[lang] = df[lang].parallel_apply(tokenizer, args=[*args]) # tokenize each sentence
     df = df.dropna() # drop Nan row
     return df
 
@@ -139,7 +192,7 @@ def RFR_tokenize_sentence(sentence:str, lang:str):
     sentence = sentence.strip(' ') # remove puncs probably create some space at the start and end of sentence
     sentence = re.sub(r"[%s]+"%(double_space), ' ', sentence) # replace double space with single space
 
-    if lang == 'th' # use special tokenizer for Thai
+    if lang == 'th': # use special tokenizer for Thai
         sentence= word_tokenize(sentence, engine='newmm')
         sentence = [i for i in sentence if i != ' ']
         if len(sentence)==0:
