@@ -5,7 +5,7 @@
 
     "representation_setting":{
         "RFR":{
-            "0": {"description": "default for RFR: base_encoder=USE, n_grams=6"}
+            "0": {"description": "default for RFR: base_encoder=USE, n_grams=6, sentence_len=6"}
         }
     },
 
