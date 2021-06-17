@@ -35,9 +35,9 @@ def byte_decode(b64_str:str):
     '''
     return pickle.loads(base64.b64decode(b64_str))
 
-def get_RFR_CLSR_setting(setting_code:int):
+def get_experiment_setting(setting_code:int):
     '''
-    get setting from setting_name
+    get setting from setting_code
     input: setting_code(int) - setting code to get the setting_dict
     output: RFR-CLSR experiment setting(tuple) - parameters to run an experiment composed with
         DESCRIPTION(str) - experiment description
@@ -46,12 +46,11 @@ def get_RFR_CLSR_setting(setting_code:int):
         RETRIEVE_METHOD(list) - [distance function, k-NN]
         AGGREGATE_METHOD(list) - [aggregate method, aggregate_setting]
     '''
-    logger = log.get_logger(__name__) # get logger instance
-    with open('config/RFR-CLSR.json') as f: # load RFR-CLSR json setting
+    with open('config/run.json') as f: # load RFR-CLSR json setting
         setting_dict = json.load(f)
     setting_code = str(setting_code)
     if not setting_code in setting_dict['setting'].keys(): # check setting code existance
-        raise ValueError('invalid experiment setting_name')
+        raise ValueError(f"invalid experiment setting_code:{setting_dict['setting'].keys()}")
 
     setting = setting_dict['setting'][setting_code]
     keys = setting.keys()
@@ -68,7 +67,7 @@ def get_RFR_CLSR_setting(setting_code:int):
     if 'represent_method' in keys: # get represent method
         REPRESENT_METHOD = setting['representation_method']
     else:
-        REPRESENT_METHOD = ['RFR',0] # representation method, setting code
+        REPRESENT_METHOD = ['RFR', '0'] # representation method, setting code
 
     if 'retrieve_method' in keys: # get retrieve method
         RETRIEVE_METHOD = setting['retrieve_method']
@@ -78,6 +77,6 @@ def get_RFR_CLSR_setting(setting_code:int):
     if 'aggregate_method' in keys: # get aggregate method
         AGGREGATE_METHOD = setting['aggregate_method']
     else:
-        AGGREGATE_METHOD = ['RFR', 0]
+        AGGREGATE_METHOD = ['RFR', '0']
 
     return (DESCRIPTION, TOKENIZE_METHOD, REPRESENT_METHOD, RETRIEVE_METHOD, AGGREGATE_METHOD)
