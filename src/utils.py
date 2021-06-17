@@ -72,7 +72,7 @@ def get_experiment_setting(setting_code:int):
     if 'retrieve_method' in keys: # get retrieve method
         RETRIEVE_METHOD = setting['retrieve_method']
     else:
-        RETRIEVE_METHOD = ['cosine', 50] # retrieve method, k-NN
+        RETRIEVE_METHOD = ['cosine', '50'] # retrieve method, k-NN
     
     if 'aggregate_method' in keys: # get aggregate method
         AGGREGATE_METHOD = setting['aggregate_method']
