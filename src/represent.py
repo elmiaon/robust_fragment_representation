@@ -159,6 +159,12 @@ def CLSR(setting_code:int, corpus:str, sub_corpus:str, s:str, t:str, chunksize:i
 
                 logger.info(f"finifsh {corpus}-{sub_corpus}.{s}-{t}.{lang} tokenization")
                 logger.info(f"sample:\n{df}") # show some sample
+            
+            else:
+                logger.info(f"skip {corpus}-{sub_corpus}.{s}-{t}.{lang} representation") # the represent step for specific language is skipped
+            
+    else:
+        logger.info(f"skip {corpus}-{sub_corpus}.{s}-{t} representation") # the represent step is skipped
 
 ##################################################
 ### CLSR_represent                             ###
