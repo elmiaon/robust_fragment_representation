@@ -124,11 +124,12 @@ def CLSR(setting_code:int, corpus:str, sub_corpus:str, s:str, t:str, chunksize:i
     input : 
         setting_code(int) - setting_code to get the experiment parameter
         corpus(str), sub_corpus(str) - corpus and sub corpus to be tokenzied
-        s(str), t(str) - source and target language to be tokenized, respectively
-    output: tokenized dataset files(csv) - saved in data/tokenized/ directory
+        s(str), t(str) - source and target language to be represented, respectively
+    output: represented dataset files(csv) - saved in data/represented/ directory
     '''
-    _, tokenize_method, represent_method, _, _ = utils.get_experiment_setting(setting_code)
     logger = log.get_logger(__name__)
+    
+    _, tokenize_method, represent_method, _, _ = utils.get_experiment_setting(setting_code)
 
     skip, output_dir = check_output(corpus, sub_corpus, s, t, tokenize_method, represent_method)
     
