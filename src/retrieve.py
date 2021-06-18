@@ -22,8 +22,8 @@ import src.utils as utils
 ##################################################
 ### define global                              ###
 ##################################################
-t_vec = None
-t_label = None
+t_vec = None # store target vector for many source to look at
+t_label = None # store target label for many source
 
 ##################################################
 ### check input and output                     ###
