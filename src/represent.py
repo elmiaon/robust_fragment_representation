@@ -158,8 +158,8 @@ def CLSR(setting_code:int, corpus:str, sub_corpus:str, s:str, t:str, chunksize:i
                 df = pd.concat(preprocessed_list, ignore_index=True) # concat all chunk
                 df.to_csv(out_dir, sep='\t', index=False) # save the represented
 
-                logger.info(f"finifsh {corpus}-{sub_corpus}.{s}-{t}.{lang} tokenization")
-                logger.info(f"sample:\n{df}") # show some sample
+                logger.info(f"finish {corpus}-{sub_corpus}.{s}-{t}.{lang} tokenization")
+                logger.info(f"sample:\n{df}") # show some samples
             
             else:
                 logger.info(f"skip {corpus}-{sub_corpus}.{s}-{t}.{lang} representation") # the represent step for specific language is skipped
