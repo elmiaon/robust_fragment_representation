@@ -190,14 +190,27 @@ def CLSR(setting_code:int, corpus:str, sub_corpus:str, s:str, t:str, chunksize:i
 # def kernel_dist(dist):
 #     return(  np.exp( -(np.power(dist,2))/2 ) / np.sqrt(2*np.pi)  )
 
-def cosine(vec, n_min_distance):
+def cosine(vec, k:int):
+    '''
+    retrieve k-NN of given source vectors from global target_vector
+
+    parameters
+    ----------
+    vec: numpy array. [chunksize, embedding dim]. source vector array 
+    k: int. k for k-NN
+
+    returns
+    -------
+    labels: numpy array. [chunksize, k].
+        sorted k-NN target label for source vector each element composed of 
+        "fragment_id|sentence_id" of target fragment
+    distance: numpy array. [chunksize, k]. distance between each source and k-NN target fragmemt
+    '''
     global t_vec, t_label
-    tic = time()
     distance = np.inner(vec, t_vec)
     distance = 1-distance
-    ind = np.argsort(distance)[:n_min_distance]
+    ind = np.argsort(distance)[:k]
     distance = distance[ind]
-    toc = time()
     return t_label[ind], distance
 
 # def arccos(vec, n_min_distance):
