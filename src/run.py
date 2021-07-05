@@ -17,6 +17,7 @@ import src.utils as utils
 import src.tokenize as tokenize
 import src.represent as represent
 import src.retrieve as retrieve
+import src.aggregate as aggregate
 
 ##################################################
 ### run experiment                             ###
@@ -194,14 +195,14 @@ def RFR_CLSR(args):
     step+=1
 
 
-    # #####
-    # # 3.) Parameters tuning
-    # #####
-    # tic = time()
-    # params = tune_retrieve_params.tune_retrieve_params(EXP_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
-    # toc = time()
-    # logger.info(f"step {step}/{n_steps} - tuning parameter in {toc-tic:.2f} second(s)")
-    # step+=1
+    #####
+    # 3.) Parameters tuning
+    #####
+    tic = time()
+    params = aggregate.tune_aggregator(SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
+    toc = time()
+    logger.info(f"step {step}/{n_steps} - tuning parameter in {toc-tic:.2f} second(s)")
+    step+=1
     
     # #####
     # # 4.) Looking around
