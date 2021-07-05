@@ -171,20 +171,24 @@ def RFR_aggregator(k_list, beta_list, filter_thres, p_thres, at):
     # params_set = [k_list, beta_list, filter_thres, p_thres, at] # generate parameter set to save
 
     # params_df = pd.DataFrame(itertools.product(*params_set), columns=['k', 'beta', 'fil', 'pthres', 'at']) # create parameter dataframe
-    k_list = np.array([5, 10])
-    beta_list = np.array([50, 100])
-    filter_thres = np.array([0.1, 0.5, 1])
-    p_thres = np.array([0, 0.5, 1])
-    params_set = [k_list, beta_list, filter_thres, p_thres, [at], [False]] # create parameter set to tune 
+    
+    # test single
+    score, analyses = get_RFR_result((5, 50, 0.2, 0.3, [1, 5, 10], False))
+    
+    # test batch
+    # k_list = np.array([5, 10])
+    # beta_list = np.array([50, 100])
+    # filter_thres = np.array([0.1, 0.5, 1])
+    # p_thres = np.array([0, 0.5, 1])
+    # params_set = [k_list, beta_list, filter_thres, p_thres, [at], [False]] # create parameter set to tune 
 
-    mp_input = itertools.product(*params_set) # do permutation
+    # mp_input = itertools.product(*params_set) # do permutation
+    # with mp.Pool(processes=PROCESS_NUM) as p:
+    #     scores, ones = zip(*p.map(get_RFR_result, mp_input))
 
-    # score, analyses = get_RFR_result((5, 50, 0.2, 0.3, [1, 5, 10], True))
     # print(score)
     # print(analyses)
     # print(score)
-    with mp.Pool(processes=PROCESS_NUM) as p:
-        scores, ones = zip(*p.map(get_RFR_result, mp_input))
 
     # for i, df in enumerate(scores):
     #     print(f"score#{i+1}:\n{df}")
@@ -198,14 +202,13 @@ def get_RFR_result(args):
     global retrieved_df
     k, beta, fil, p_thre, at, analyse = args
     aggregated_df = retrieved_df.apply(get_RFR_aggregated, args=(k, beta, fil, p_thre), axis=1)
-    aggregated_df = aggregated_df.dropna()
+
     scores = []
     analyses = {}
     for n in at:
         ans_df = aggregated_df[['id', 'ans']]
         ans_df['ans'] = ans_df['ans'].apply(lambda x: x[:n])
         score, TP, TN, FP, FN, FA = cal_score(ans_df)
-        score2 = cal_score2(ans_df)
         print(f"at {n}:")
         temp = pd.DataFrame([score2, score], columns=['acc', 'fil_p', 'fil_r', 'fil_f1', 'align_p', 'align_r', 'align_f1'])
         print(f"{temp}")
@@ -218,6 +221,25 @@ def get_RFR_result(args):
         return score_df
 
 def get_RFR_aggregated(row, k, beta, fil, p_thre):
+    '''
+    get aggregated answer using FRF method
+
+    parameters
+    ----------
+    row: df row. row(sentence id) to get the aggregated answer    
+    k: int. k of k-NN to be included in aggration
+    beta: int. spiking coefficient
+    fil: float. minimum entropy portion to be keep
+    p_thre: float. probability thresold
+
+    returns
+    -------
+    row: df row. aggreted row composed of
+        id - sentence id
+        candidates - list of candidates
+        prob - probability of each candidates
+        ans - if true this sentence id will be include in the answer set, filted out otherwise.
+    '''
     candidates = row.pop('candidates')
     similarity = row.pop('similarity')
 
@@ -240,11 +262,12 @@ def get_RFR_aggregated(row, k, beta, fil, p_thre):
     # sort aggregated
     unique_candidates = unique_candidates[sorted_unique_idx]
     unique_prob = unique_prob[sorted_unique_idx]
+    row['candidates'] = unique_candidates
+    row['prob'] = unique_prob
     if unique_prob[0] < p_thre:
-        row['id'], row['ans'], row['prob'] = None, None, None
+        row['ans'] = False
     else:
-        row['ans'] = unique_candidates
-        row['prob'] = unique_prob
+        row['ans'] = True
     return row
 
 def cal_score(ans_df):
@@ -291,56 +314,7 @@ def cal_score(ans_df):
 
     acc = (n_TN + n_TP)/n_retrieved
 
-    return (acc, fil_p, fil_r, fil_f1, align_p, align_r, align_f1), TP_df, TN_df, FP_df, FN_df, FA_df
-
-
-def cal_score2(ans_df):
-    global retrieved_df, gold_df
-    n_filter = len(  set(retrieved_df['id'])-( set(ans_df['id'])|set(gold_df['id']) )  )
-
-    if ans_df.empty:
-        accuracy = n_filter/len(retrieved_df)
-        return np.array([accuracy, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    else:
-        n_answer = len(ans_df)
-        n_answer_in_gold = np.sum(ans_df['id'].isin(gold_df['id']))
-        n_gold = len(gold_df)
-        merge_df = pd.merge(gold_df, ans_df, left_on='id', right_on='id')
-        if merge_df.empty:
-            accuracy = n_filter/len(retrieved_df)
-            return np.array([accuracy, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-        merge_df = merge_df.apply(validate_ans, axis=1)
-        n_correct = np.sum(merge_df['correct'])
-        # # overall accuracy = (correct answer + correct filter)/ (key answer + key filter)
-        accuracy = (n_correct + n_filter) / len(retrieved_df)
-
-        # filter capability
-        if n_answer_in_gold != 0:
-            ## precision = #answer id in gold id/ #answer id
-            filter_precision = n_answer_in_gold/n_answer
-            ## recall = #answer id in gold id/ #gold id
-            filter_recall = n_answer_in_gold/n_gold
-            ## f1 = (2*precision*recall)/ (precision+recall)
-            filter_f1 = f1(filter_precision, filter_recall)
-        else: 
-            filter_precision = 0.0
-            filter_recall = 0.0
-            filter_f1 = 0.0
-
-        # answer capability
-        if n_correct != 0:
-            ## precision = accuracy = #correct answer/ #answer id
-            answer_precision = n_correct/n_answer
-            ## recall = #correct answer/ # gold id
-            answer_recall = n_correct/n_gold
-            ## f1 = (2*precision*recall)/ (precision+recall)
-            answer_f1 = f1(answer_precision, answer_recall)
-        else:
-            answer_precision = 0.0
-            answer_recall = 0.0
-            answer_f1 = 0.0
-        
-        return np.array([accuracy, filter_precision, filter_recall, filter_f1, answer_precision, answer_recall, answer_f1])
+    return np.array([acc, fil_p, fil_r, fil_f1, align_p, align_r, align_f1]), TP_df, TN_df, FP_df, FN_df, FA_df
 
 def validate_ans(row):
     sid = row.pop('id')
