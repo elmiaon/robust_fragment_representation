@@ -36,7 +36,7 @@ translator = None
 ##################################################
 ### check input and output                     ###
 ##################################################
-def check_output(corpus:str, sub_corpus:str, s:str, t:str, tokenize_method:str, represent_method:list, retrieve_method:list, aggregate_method:list):
+def check_tuned_output(corpus:str, sub_corpus:str, s:str, t:str, tokenize_method:str, represent_method:list, retrieve_method:list, aggregate_method:list):
     '''
     checking output for skip
     parameters
@@ -65,7 +65,7 @@ def check_output(corpus:str, sub_corpus:str, s:str, t:str, tokenize_method:str, 
     else:
         return False, output_dir
 
-def check_input(corpus:str, sub_corpus:str, s:str, t:str, tokenize_method:str, represent_method:list, retrieve_method:list):
+def check_tuned_input(corpus:str, sub_corpus:str, s:str, t:str, tokenize_method:str, represent_method:list, retrieve_method:list):
     '''
     checking input
     parameters
@@ -123,11 +123,11 @@ def tune_aggregator(setting_code:int, corpus:str, sub_corpus:str, s:str, t:str):
 
     _, tokenize_method, represent_method, retrieve_method, aggregate_method = utils.get_experiment_setting(setting_code) # get settings
 
-    skip, output_dir = check_output(corpus, sub_corpus, s, t, tokenize_method, represent_method, retrieve_method, aggregate_method) # check output existance
+    skip, output_dir = check_tuned_output(corpus, sub_corpus, s, t, tokenize_method, represent_method, retrieve_method, aggregate_method) # check output existance
 
     if not skip:
 
-        input_dir, gold_dir = check_input(corpus, sub_corpus, s, t, tokenize_method, represent_method, retrieve_method) # check and get exist input dir
+        input_dir, gold_dir = check_tuned_input(corpus, sub_corpus, s, t, tokenize_method, represent_method, retrieve_method) # check and get exist input dir
 
         method, aggregate_setting_code = aggregate_method # unpack aggregate_method
 
@@ -147,7 +147,18 @@ def tune_aggregator(setting_code:int, corpus:str, sub_corpus:str, s:str, t:str):
             aggregate = RFR_aggregator
         else:
             raise ValueError(f"invalid aggregator tuning method")
-        score_df = aggregate(*args)
+        scores_df = aggregate(*args)
+        scores_df.to_csv(output_dir, sep='\t', index=False)
+    
+    else:
+        scores_df = pd.read_csv(output_dir, sep='\t')
+    
+    at_1 = scores_df.loc[scores_df['n']==1]
+    params_set = at_1.loc[at_1['align_f1']==at_1['align_f1'].max()]
+    print(params_set)
+    params = at_1.loc[at_1['align_f1']==at_1['align_f1'].max()].tail(1)
+    print(params)
+
 
 ##################################################
 ### tuning methods                             ###
@@ -168,12 +179,18 @@ def RFR_aggregator(k_list, beta_list, filter_thres, p_thres, at):
     best_params: set of best tuning score params
     '''
 
-    # params_set = [k_list, beta_list, filter_thres, p_thres, at] # generate parameter set to save
+    params_set = [k_list, beta_list, filter_thres, p_thres, [at], [False]] # generate parameter set to save
 
     # params_df = pd.DataFrame(itertools.product(*params_set), columns=['k', 'beta', 'fil', 'pthres', 'at']) # create parameter dataframe
     
-    # test single
-    score, analyses = get_RFR_result((5, 50, 0.2, 0.3, [1, 5, 10], False))
+    # # test single
+    # score, TP, TN, FP, FN, FA = get_RFR_result((5, 50, 0.2, 0.3, [1, 5, 10], True))
+    # print(f"score: {score}")
+    # print(f"TP:{len(TP)}\n{TP}")
+    # print(f"TN:{len(TN)}\n{TN}")
+    # print(f"FP:{len(FP)}\n{FP}")
+    # print(f"FN:{len(FN)}\n{FN}")
+    # print(f"FA:{len(FA)}\n{FA}")
     
     # test batch
     # k_list = np.array([5, 10])
@@ -182,41 +199,33 @@ def RFR_aggregator(k_list, beta_list, filter_thres, p_thres, at):
     # p_thres = np.array([0, 0.5, 1])
     # params_set = [k_list, beta_list, filter_thres, p_thres, [at], [False]] # create parameter set to tune 
 
-    # mp_input = itertools.product(*params_set) # do permutation
-    # with mp.Pool(processes=PROCESS_NUM) as p:
-    #     scores, ones = zip(*p.map(get_RFR_result, mp_input))
-
-    # print(score)
-    # print(analyses)
-    # print(score)
-
-    # for i, df in enumerate(scores):
-    #     print(f"score#{i+1}:\n{df}")
+    mp_input = itertools.product(*params_set) # do permutation
+    with mp.Pool(processes=PROCESS_NUM) as p:
+        scores = p.map(get_RFR_result, mp_input)
     
-    # scores_df = pd.concat(scores)
-    # print(f"scores_df:\n{scores_df}")
-    # print(f"ones: {ones}")
+    scores_df = pd.concat(scores)
+    return scores_df
 
     
 def get_RFR_result(args):
     global retrieved_df
     k, beta, fil, p_thre, at, analyse = args
     aggregated_df = retrieved_df.apply(get_RFR_aggregated, args=(k, beta, fil, p_thre), axis=1)
-
     scores = []
-    analyses = {}
     for n in at:
-        ans_df = aggregated_df[['id', 'ans']]
-        ans_df['ans'] = ans_df['ans'].apply(lambda x: x[:n])
-        score, TP, TN, FP, FN, FA = cal_score(ans_df)
-        print(f"at {n}:")
-        temp = pd.DataFrame([score2, score], columns=['acc', 'fil_p', 'fil_r', 'fil_f1', 'align_p', 'align_r', 'align_f1'])
-        print(f"{temp}")
-        analyses[n] = [TP, TN, FP, FN, FA]
+        ans_df = aggregated_df.copy()
+        ans_df['candidates'] = ans_df['candidates'].apply(lambda x: x[:n])
+        score, analysis_component_ids = cal_score(ans_df, gold_df)
+        if n == 1 and analyse:
+            TP, TN, FP, FN, FA = get_analysis_components(aggregated_df, analysis_component_ids)
         scores.append(np.concatenate([[k, beta, fil, p_thre, n], score], axis=None))
     score_df = pd.DataFrame(scores, columns=['k', 'beta', 'fil', 'p_thres', 'n', 'acc', 'fil_p', 'fil_r', 'fil_f1', 'align_p', 'align_r', 'align_f1']).convert_dtypes()
+    
+    if beta==100 and fil==1 and p_thre==1:
+        print(f"finish {args}")
+
     if analyse:
-        return score_df, analyses
+        return score_df, TP, TN, FP, FN, FA
     else:
         return score_df
 
@@ -270,15 +279,19 @@ def get_RFR_aggregated(row, k, beta, fil, p_thre):
         row['ans'] = True
     return row
 
-def cal_score(ans_df):
-    fil_df = retrieved_df.loc[~retrieved_df['id'].isin(ans_df['id'])] # filtered_df
+def cal_score(aggregated_df, gold_df):
+
+
+    ans_df = aggregated_df.loc[aggregated_df['ans'] == True][['id', 'candidates', 'prob']] # answered candidates
+    fil_df = aggregated_df.loc[aggregated_df['ans'] == False][['id', 'candidates', 'prob']] # filtered candidates
+
     n_ans = len(ans_df)
-    n_retrieved = len(retrieved_df)
+    n_aggregated = len(aggregated_df)
     n_gold = len(gold_df)
 
     if fil_df.empty:
-        FN_df = pd.DataFrame(columns=fil_df.columns)
-        TN_df = pd.DataFrame(columns=fil_df.columns)
+        FN_df = pd.DataFrame(columns=aggregated_df.columns)
+        TN_df = pd.DataFrame(columns=aggregated_df.columns)
         n_TN = 0
     else:
         FN_df = fil_df.loc[fil_df['id'].isin(gold_df['id'])] # false negative (filtered out answers)
@@ -298,8 +311,8 @@ def cal_score(ans_df):
         merge_df = pd.merge(gold_df, hit_df, left_on='id', right_on='id')
         merge_df = merge_df.apply(validate_ans, axis=1)
 
-        TP_df = merge_df.loc[merge_df['correct'] == True]
-        FA_df = merge_df.loc[merge_df['correct'] == False]
+        TP_df = merge_df.loc[merge_df['correct'] == True][['id', 'candidates', 'prob']]
+        FA_df = merge_df.loc[merge_df['correct'] == False][['id', 'candidates', 'prob']]
 
         n_hit = len(hit_df)
         n_TP = len(TP_df)
@@ -312,16 +325,15 @@ def cal_score(ans_df):
         align_r = n_TP/n_gold
         align_f1 = f1(align_p, align_r)
 
-    acc = (n_TN + n_TP)/n_retrieved
+    acc = (n_TN + n_TP)/n_aggregated
 
-    return np.array([acc, fil_p, fil_r, fil_f1, align_p, align_r, align_f1]), TP_df, TN_df, FP_df, FN_df, FA_df
+    return np.array([acc, fil_p, fil_r, fil_f1, align_p, align_r, align_f1]), [TP_df['id'], TN_df['id'], FP_df['id'], FN_df['id'], FA_df['id']]
 
+def get_analysis_components(df, analysis_component_ids):
+    return [df.loc[df['id'].isin(ids)][['id', 'candidates', 'prob']] for ids in analysis_component_ids]
+    
 def validate_ans(row):
-    sid = row.pop('id')
-    pair = row.pop('pair')
-    ans = row.pop('ans')
-    row['id'] = sid
-    row['correct'] = pair in ans
+    row['correct'] = row['pair'] in row['candidates']
     return row
 
 def f1(precision, recall):
