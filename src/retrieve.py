@@ -48,7 +48,7 @@ def check_output(corpus:str, sub_corpus:str, s:str, t:str, tokenize_method:str, 
     '''
     output_corpus_dir = f"data/retrieved/{corpus}/{sub_corpus}/{'k'.join(retrieve_method)}" # define output dir
     utils.make_dir(f"{output_corpus_dir}") # create output dir
-    output_dir = f"{output_corpus_dir}/{'s'.join(retrieve_method)}.{tokenize_method}.{s}-{t}.csv"
+    output_dir = f"{output_corpus_dir}/{tokenize_method}.{'s'.join(represent_method)}.{s}-{t}.csv"
 
     # check output to skip
     if os.path.isfile(output_dir):
@@ -98,11 +98,18 @@ def check_input(corpus:str, sub_corpus:str, s:str, t:str, tokenize_method:str, r
 def CLSR(setting_code:int, corpus:str, sub_corpus:str, s:str, t:str, chunksize:int=1000):
     '''
     retrieve fragment for CLSR task
-    input : 
-        setting_code(int) - setting_code to get the experiment parameter
-        corpus(str), sub_corpus(str) - corpus and sub corpus to be tokenzied
-        s(str), t(str) - source and target language to be represented, respectively
-    output: represented dataset files(csv) - saved in data/represented/ directory
+
+    parameters
+    ----------
+    setting_code: int. setting_code to get the experiment parameters
+    corpus: string. corpus to be represented
+    sub_corpus: string. sub corpus to be represented
+    s: string. source langugae to be represented
+    t: string. target language to be represented
+
+    returns
+    -------
+    represented dataset files: csv. saved in data/represented/ directory
     '''
 
     global t_vec, t_label
@@ -138,6 +145,7 @@ def CLSR(setting_code:int, corpus:str, sub_corpus:str, s:str, t:str, chunksize:i
             print(f"finish {corpus}-{sub_corpus}.{s}-{t} part {idx_chunk+1} retrieval") # print to tell the status of each chunk
         
         df = pd.concat(retrieved_list, ignore_index=True) # concat all chunk
+        df['distance'] = df['distance'].parallel_apply(utils.byte_encode)
         df.to_csv(output_dir, sep='\t', index=False) # save the retrieved
 
         logger.info(f"finish {corpus}-{sub_corpus}.{s}-{t} retrieval")
