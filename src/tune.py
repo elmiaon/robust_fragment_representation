@@ -10,10 +10,7 @@ import os
 import pandas as pd
 from pandarallel import pandarallel
 pandarallel.initialize(use_memory_fs=False)
-from scipy import ndimage
-from scipy.stats import entropy
 import sys
-from googletrans import Translator
 # logging lib
 import logging
 import src.log as log
@@ -146,9 +143,8 @@ def tune_aggregator(setting_code:int, corpus:str, sub_corpus:str, s:str, t:str):
     
     at_1 = scores_df.loc[scores_df['n']==1]
     params_set = at_1.loc[at_1['align_f1']==at_1['align_f1'].max()]
-    print(params_set)
-    params = at_1.loc[at_1['align_f1']==at_1['align_f1'].max()].tail(1)
-    print(params)
+    params = at_1.loc[at_1['align_f1']==at_1['align_f1'].max()].tail(1).to_numpy().reshape(-1)
+    return (  params[:4]  ) # return k, beta, fil, p_thres
 
 
 ##################################################
