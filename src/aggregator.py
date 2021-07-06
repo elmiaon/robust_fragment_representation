@@ -29,8 +29,8 @@ import src.cal_score as cal_score
 ##################################################
 
 def get_RFR_result(args):
-    kerneled_df, gold_df, k, beta, fil, p_thre, at, analyse = args
-    aggregated_df = kerneled_df.apply(get_RFR_aggregated, args=(k, beta, fil, p_thre), axis=1)
+    kerneled_df, gold_df, k, beta, fil, p_thres, at, analyse = args
+    aggregated_df = kerneled_df.apply(get_RFR_aggregated, args=(k, beta, fil, p_thres), axis=1)
     scores = []
     for n in at:
         ans_df = aggregated_df.copy()
@@ -38,18 +38,18 @@ def get_RFR_result(args):
         score, analysis_component_ids = cal_score.cal_score(ans_df, gold_df)
         if n == 1 and analyse:
             TP, TN, FP, FN, FA = get_analysis_components(aggregated_df, analysis_component_ids)
-        scores.append(np.concatenate([[k, beta, fil, p_thre, n], score], axis=None))
+        scores.append(np.concatenate([[k, beta, fil, p_thres, n], score], axis=None))
     score_df = pd.DataFrame(scores, columns=['k', 'beta', 'fil', 'p_thres', 'n', 'acc', 'fil_p', 'fil_r', 'fil_f1', 'align_p', 'align_r', 'align_f1']).convert_dtypes()
     
-    if beta==100 and fil==1 and p_thre==1:
-        print(f"finish {(k, beta, fil, p_thre, at, analyse)}")
+    if beta==100 and fil==1 and p_thres==1:
+        print(f"finish {(k, beta, fil, p_thres, at, analyse)}")
 
     if analyse:
         return score_df, TP, TN, FP, FN, FA
     else:
         return score_df
 
-def get_RFR_aggregated(row, k, beta, fil, p_thre):
+def get_RFR_aggregated(row, k, beta, fil, p_thres):
     '''
     get aggregated answer using FRF method
 
@@ -59,7 +59,7 @@ def get_RFR_aggregated(row, k, beta, fil, p_thre):
     k: int. k of k-NN to be included in aggration
     beta: int. spiking coefficient
     fil: float. minimum entropy portion to be keep
-    p_thre: float. probability thresold
+    p_thres: float. probability thresold
 
     returns
     -------
@@ -93,7 +93,7 @@ def get_RFR_aggregated(row, k, beta, fil, p_thre):
     unique_prob = unique_prob[sorted_unique_idx]
     row['candidates'] = unique_candidates
     row['prob'] = unique_prob
-    if unique_prob[0] < p_thre:
+    if unique_prob[0] < p_thres:
         row['ans'] = False
     else:
         row['ans'] = True
