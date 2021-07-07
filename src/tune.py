@@ -122,7 +122,7 @@ def tune_aggregator(setting_code:int, corpus:str, sub_corpus:str, s:str, t:str):
 
         method, aggregate_setting_code = aggregate_method # unpack aggregate_method
 
-        args = get_aggregate_setting(method, aggregate_setting_code)
+        args = aggregator.get_aggregate_setting(method, aggregate_setting_code)
 
         gold_df = pd.read_csv(gold_dir, sep='\t') # load gold
         gold_df = gold_df[[s, t]] # reorder columns
@@ -172,79 +172,8 @@ def tune_RFR_aggregator(retrieved_df, gold_df, k_list, beta_list, filter_thres, 
 
     mp_input = itertools.product(*params_set) # do permutation
     with mp.Pool(processes=PROCESS_NUM) as p:
-        scores = p.map(aggregator.get_RFR_result, mp_input)
+        scores = p.map(cal_score.get_RFR_result, mp_input)
     
     scores_df = pd.concat(scores)
     return scores_df
 
-##################################################
-### get aggregate setting                      ###
-##################################################
-def get_aggregate_setting(method:str, setting_code:int):
-    ''' 
-    get aggregate setting from setting_code
-
-    parameters
-    ----------
-    method: string. method to identify aggregate parset
-    setting_code: int. setting code to get the setting_dict
-
-    returns
-    -------
-    base_encoder_name: string. name to get base encoder model
-    args: list. list of parameters for represent method
-    '''
-
-    with open('config/run.json') as f: # load RFR-CLSR json setting
-        setting_dict = json.load(f)
-    setting_code = str(setting_code)
-
-    if not setting_code in setting_dict['aggregate_setting'][method].keys(): # check setting code existance
-        raise ValueError(f"invalid {method} aggregate setting_code")
-    
-    setting = setting_dict['aggregate_setting'][method][setting_code]
-    if method == 'RFR':
-        aggregate_parser = RFR_parser
-    else:
-        return ValueError("invalid aggregate method")
-
-    return aggregate_parser(setting)
-
-def RFR_parser(setting):
-    
-    keys = setting.keys()
-    if 'description' in keys: # get description
-        DESCRIPTION = setting['description']
-    else:
-        raise ValueError('missing experiment description')
-    
-    if 'kNN' in keys: # get k for kNN
-        start, stop, step = setting['kNN']
-    else:
-        start, stop, step = 5, 51, 5
-    kNN = np.arange(start, stop, step)
-    
-    if 'beta' in keys: # get spiking coefficient
-        start, stop, step = setting['beta']
-    else:
-        start, stop, step = 50, 101, 5
-    beta = np.arange(start, stop, step)
-
-    if 'p_min_entropy' in keys: # get pecentage of min entropy
-        start, stop, step = setting['p_min_entropy']
-    else:
-        start, stop, step = 0.2, 1, 9
-    p_min_entropy = np.linspace(start, stop, step)
-    
-    if 'p_thres' in keys: # get 
-        start, stop, step = setting['p_thres']
-    else:
-        start, stop, step = 0.3, 1, 8
-    p_thres = np.linspace(start, stop, step)
-
-    if 'at' in keys:
-        at = setting['at']
-    else:
-        at = np.array([1, 5,10])
-    
-    return (kNN, beta, p_min_entropy, p_thres, at)
