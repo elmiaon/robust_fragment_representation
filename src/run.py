@@ -41,6 +41,24 @@ def run(filename:str):
             raise ValueError(f"invalid method")
         process(args) # run the experiment
 
+    results = {}
+    result_root_dir = f"data/results/{filename[4:-3]}"
+    utils.make_dir(result_root_dir)
+    for method, args in pipeline:
+        logger.info(f"collecting result from {method}, {args}")
+        collected_result = results.get(method, [])
+        if method == 'RFR-CLSR':
+            result_collect = RFR_result_collector
+        else:
+            raise ValueError(f"invalid method")
+        collected_result.append(result_collect(args))
+        results[method] = collected_result
+    for key in results:
+        result_df = pd.concat(results[key], ignore_index=True)
+        result_df.to_csv(f"{result_root_dir}/{key}.csv", sep='\t', index=False)
+
+
+
 ##################################################
 ### get setting                                ###
 ##################################################
@@ -259,3 +277,22 @@ def RFR_CLSR(args):
     # toc = time()
     # logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
     # step+=1
+
+##################################################
+### result_collector                           ###
+##################################################
+def RFR_result_collector(args):
+    SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, TEST_CORPUS, TEST_SUB_CORPUS, S, T = args # unpack args
+    DESCRIPTION, TOKENIZE_METHOD, REPRESENT_METHOD, RETRIEVE_METHOD, AGGREGATE_METHOD = utils.get_experiment_setting(SETTING_CODE) # get experiment setting from setting_code
+
+    result_df = pd.read_csv(f"data/tested/{TOKENIZE_METHOD}.{'s'.join(REPRESENT_METHOD)}.{'k'.join(RETRIEVE_METHOD)}.{'s'.join(AGGREGATE_METHOD)}/test_{TEST_CORPUS}_{TEST_SUB_CORPUS}.tune_{TUNE_CORPUS}_{TUNE_SUB_CORPUS}.{S}-{T}.csv", sep='\t')
+    len_result = len(result_df)
+    corpus_df = pd.DataFrame({
+        'te': [TEST_CORPUS]*len_result,
+        'te_sub': [TEST_SUB_CORPUS]*len_result,
+        'tu': [TUNE_CORPUS]*len_result,
+        'tu_sub': [TUNE_SUB_CORPUS]*len_result,
+        'lang': [f"{S}-{T}"]*len_result,
+        'setting': [SETTING_CODE]*len_result
+    })
+    return pd.concat([corpus_df, result_df], axis=1)
