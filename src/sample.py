@@ -34,7 +34,7 @@ def sample_CLSR(args:tuple):
     n_out_s, n_out_t, n_out_close = condition_tuple # unpack condition tuple
 
     # check the reformatted dataset to be sampled
-    input_corpus_dir = f"data/reformatted/{corpus}/{sub_corpus}" # define input dir
+    input_corpus_dir = f"data/reformatted/{parent_corpus}/{parent_sub_corpus}" # define input dir
     if os.path.isfile(f"{input_corpus_dir}/{s}-{t}.{s}.csv") and \
        os.path.isfile(f"{input_corpus_dir}/{s}-{t}.{t}.csv") and \
        os.path.isfile(f"{input_corpus_dir}/{s}-{t}.gold.csv"):
@@ -44,7 +44,7 @@ def sample_CLSR(args:tuple):
          os.path.isfile(f"{input_corpus_dir}/{t}-{s}.gold.csv"):
         pass
     else: # error if there is no reformatted file
-        raise FileExistsError(f"There is no reformatted {corpus}-{sub_corpus}")
+        raise FileExistsError(f"There is no reformatted {parent_corpus}-{parent_sub_corpus}")
 
     corpus_dir = f"data/reformatted/{corpus}/{sub_corpus}" # define output dir
     utils.make_dir(corpus_dir) # create output dir

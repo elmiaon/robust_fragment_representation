@@ -45,6 +45,10 @@ def reformat_CLSR(args:tuple):
     fwd_check = os.path.isfile(s_fwd_output_dir) and os.path.isfile(t_fwd_output_dir) and os.path.isfile(g_fwd_output_dir)
     bwd_check = os.path.isfile(s_bwd_output_dir) and os.path.isfile(t_bwd_output_dir) and os.path.isfile(g_bwd_output_dir)
 
+    s_check = os.path.isfile(s_fwd_output_dir) or os.path.isfile(s_bwd_output_dir)
+    t_check = os.path.isfile(t_fwd_output_dir) or os.path.isfile(t_bwd_output_dir)
+    g_check = os.path.isfile(g_fwd_output_dir) or os.path.isfile(g_bwd_output_dir)
+
     if not (fwd_check or bwd_check):
         tic = time()
         sdf, tdf, gdf = reformat_raw_CLSR(corpus, sub_corpus, s, t) # reformat raw CLSR data
