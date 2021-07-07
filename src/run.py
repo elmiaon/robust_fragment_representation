@@ -55,9 +55,8 @@ def run(filename:str):
         results[method] = collected_result
     for key in results:
         result_df = pd.concat(results[key], ignore_index=True)
+        print(result_df)
         result_df.to_csv(f"{result_root_dir}/{key}.csv", sep='\t', index=False)
-
-
 
 ##################################################
 ### get setting                                ###
