@@ -24,7 +24,28 @@ import multiprocessing as mp
 PROCESS_NUM = mp.cpu_count()-2
 # custom lib
 import src.utils as utils
-# from src.prepare_corpus import load_prepared, create_temp_raw
+import src.aggregator as aggregator
+
+def get_RFR_result(args):
+    kerneled_df, gold_df, k, beta, fil, p_thres, at, analyse = args
+    aggregated_df = kerneled_df.apply(aggregator.get_RFR_aggregated, args=(k, beta, fil, p_thres), axis=1)
+    scores = []
+    for n in at:
+        ans_df = aggregated_df.copy()
+        ans_df['candidates'] = ans_df['candidates'].apply(lambda x: x[:n])
+        score, analysis_component_ids = cal_score(ans_df, gold_df)
+        if n == 1 and analyse:
+            TP, TN, FP, FN, FA = get_analysis_components(aggregated_df, analysis_component_ids)
+        scores.append(np.concatenate([[k, beta, fil, p_thres, n], score], axis=None))
+    score_df = pd.DataFrame(scores, columns=['k', 'beta', 'fil', 'p_thres', 'n', 'acc', 'fil_p', 'fil_r', 'fil_f1', 'align_p', 'align_r', 'align_f1']).convert_dtypes()
+    
+    if beta==100 and fil==1 and p_thres==1:
+        print(f"finish {(k, beta, fil, p_thres, at, analyse)}")
+
+    if analyse:
+        return score_df, TP, TN, FP, FN, FA
+    else:
+        return score_df
 
 def cal_score(aggregated_df, gold_df):
 
@@ -76,7 +97,12 @@ def cal_score(aggregated_df, gold_df):
     return np.array([acc, fil_p, fil_r, fil_f1, align_p, align_r, align_f1]), [TP_df['id'], TN_df['id'], FP_df['id'], FN_df['id'], FA_df['id']]
 
 def get_analysis_components(df, analysis_component_ids):
-    return [df.loc[df['id'].isin(ids)][['id', 'candidates', 'prob']] for ids in analysis_component_ids]
+    analysis_df = []
+    for ids in analysis_component_ids:
+        temp = df.loc[df['id'].isin(ids)][['id', 'candidates', 'prob']]
+        temp['prob'] = df['prob'].parallel_apply(utils.byte_encode)
+        analysis_df.append(temp)
+    return analysis_df
     
 def validate_ans(row):
     row['correct'] = row['pair'] in row['candidates']
