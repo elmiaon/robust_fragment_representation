@@ -4,7 +4,7 @@
             ["opus-JW300-CLSRs0"  , "tu-c50", "opus-JW300-CLSRs0"  , "te-c50"]
         ],
 
-        "opuss0Main": [
+        "opuss0main": [
             ["opus-JW300-CLSRs0"  , "tu-c50", "opus-JW300-CLSRs0"  , "te-c50"],
             ["opus-QED-CLSRs0"    , "tu-c50", "opus-QED-CLSRs0"    , "te-c50"],
             ["opus-TED2020-CLSRs0", "tu-c50", "opus-TED2020-CLSRs0", "te-c50"]
@@ -44,6 +44,12 @@
             "method": "RFR-CLSR",
             "setting_list": ["0"],
             "corpus": "opuss0varyClose"
+        },
+        "opuss0main":{
+            "description": "RFR-CLSR on sampled opus with default parameters for dev",
+            "method": "RFR-CLSR",
+            "setting_list": ["0"],
+            "corpus": "opuss0main"
         }
     },
 
