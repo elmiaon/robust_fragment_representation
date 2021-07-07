@@ -75,22 +75,38 @@ def cal_score(aggregated_df, gold_df):
         FP_df = ans_df.loc[~ans_df['id'].isin(gold_df['id'])] # false positive (answers which are not in gold)
         hit_df = ans_df.loc[ans_df['id'].isin(gold_df['id'])] # answers which are included in gold
 
-        merge_df = pd.merge(gold_df, hit_df, left_on='id', right_on='id')
-        merge_df = merge_df.apply(validate_ans, axis=1)
-
-        TP_df = merge_df.loc[merge_df['correct'] == True][['id', 'candidates', 'prob']]
-        FA_df = merge_df.loc[merge_df['correct'] == False][['id', 'candidates', 'prob']]
-
         n_hit = len(hit_df)
-        n_TP = len(TP_df)
 
-        fil_p = n_hit/n_ans
-        fil_r = n_hit/n_gold
-        fil_f1 = f1(fil_p, fil_r)
+        if n_hit == 0:
+            fil_p = 0
+            fil_r = 0
+            fil_f1 = 0
+        else:
+            fil_p = n_hit/n_ans
+            fil_r = n_hit/n_gold
+            fil_f1 = f1(fil_p, fil_r)
 
-        align_p = n_TP/n_ans
-        align_r = n_TP/n_gold
-        align_f1 = f1(align_p, align_r)
+        merge_df = pd.merge(gold_df, hit_df, left_on='id', right_on='id')
+        if merge_df.empty:
+            TP_df = pd.DataFrame(columns=ans_df.columns)
+            FA_df = pd.DataFrame(columns=ans_df.columns)
+            n_TP = 0
+        else:
+            merge_df = merge_df.apply(validate_ans, axis=1)
+
+            TP_df = merge_df.loc[merge_df['correct'] == True][['id', 'candidates', 'prob']]
+            FA_df = merge_df.loc[merge_df['correct'] == False][['id', 'candidates', 'prob']]
+
+            n_TP = len(TP_df)
+
+        if n_TP == 0:
+            align_p = 0
+            align_r = 0
+            align_f1 = 0
+        else:
+            align_p = n_TP/n_ans
+            align_r = n_TP/n_gold
+            align_f1 = f1(align_p, align_r)
 
     acc = (n_TN + n_TP)/n_aggregated
 
