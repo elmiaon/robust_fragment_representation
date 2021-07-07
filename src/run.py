@@ -18,6 +18,7 @@ import src.tokenize as tokenize
 import src.represent as represent
 import src.retrieve as retrieve
 import src.tune as tune
+import src.get_test_score as get_test_score
 # import src.aggregator as aggregator
 
 ##################################################
@@ -197,7 +198,7 @@ def RFR_CLSR(args):
 
 
     #####
-    # 3.) Parameters tuning
+    # 4.) Parameters tuning
     #####
     tic = time()
     params = tune.tune_aggregator(SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
@@ -214,33 +215,41 @@ def RFR_CLSR(args):
     # logger.info(f"step {step}/{n_steps} - tuning parameter in {toc-tic:.2f} second(s)")
     # step+=1
 
-    # #####
-    # # 5.) Preprocess training dataset
-    # #####
-    # tic = time()
-    # preprocess.preprocess(EXP_CODE, TEST_CORPUS, TEST_SUB_CORPUS, S, T)
-    # toc = time()
-    # logger.info(f"step {step}/{n_steps} - preprocess testing data in {toc-tic:.2f} second(s)")
-    # step+=1
+    #####
+    # 5.) tokenize the testing dataset
+    #####
+    tic = time()
+    tokenize.CLSR(SETTING_CODE, TEST_CORPUS, TEST_SUB_CORPUS, S, T)
+    toc = time()
+    logger.info(f"step {step}/{n_steps} - preprocess training data in {toc-tic:.2f} second(s)")
+    step+=1
 
-    # #####
-    # # 6.) retrieve the candidate
-    # #####
-    # tic = time()
-    # retrieve.retrieve(EXP_CODE, TEST_CORPUS, TEST_SUB_CORPUS, S, T)
-    # # training.retrieve_analysis()
-    # toc = time()
-    # logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
-    # step+=1
+    #####
+    # 6.) Represent the testing dataset
+    #####
+    tic = time()
+    represent.CLSR(SETTING_CODE, TEST_CORPUS, TEST_SUB_CORPUS, S, T)
+    toc = time()
+    logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
+    step+=1
 
-    # #####
-    # # 7.) Get test score
-    # #####
-    # tic = time()
-    # tune_retrieve_params.get_test_score(EXP_CODE, TEST_CORPUS, TEST_SUB_CORPUS, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T, params)
-    # toc = time()
-    # logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
-    # step+=1
+    #####
+    # 7.) Retrieve the training dataset
+    #####
+    tic = time()
+    retrieve.CLSR(SETTING_CODE, TEST_CORPUS, TEST_SUB_CORPUS, S, T)
+    toc = time()
+    logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
+    step+=1
+
+    #####
+    # 8.) Get test score
+    #####
+    tic = time()
+    get_test_score.get_score(SETTING_CODE, TEST_CORPUS, TEST_SUB_CORPUS, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T, params)
+    toc = time()
+    logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
+    step+=1
     
     # #####
     # # 8.) Error analysis
