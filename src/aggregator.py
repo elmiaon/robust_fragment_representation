@@ -28,27 +28,6 @@ import src.cal_score as cal_score
 ### RFR aggregator                             ###
 ##################################################
 
-def get_RFR_result(args):
-    kerneled_df, gold_df, k, beta, fil, p_thres, at, analyse = args
-    aggregated_df = kerneled_df.apply(get_RFR_aggregated, args=(k, beta, fil, p_thres), axis=1)
-    scores = []
-    for n in at:
-        ans_df = aggregated_df.copy()
-        ans_df['candidates'] = ans_df['candidates'].apply(lambda x: x[:n])
-        score, analysis_component_ids = cal_score.cal_score(ans_df, gold_df)
-        if n == 1 and analyse:
-            TP, TN, FP, FN, FA = get_analysis_components(aggregated_df, analysis_component_ids)
-        scores.append(np.concatenate([[k, beta, fil, p_thres, n], score], axis=None))
-    score_df = pd.DataFrame(scores, columns=['k', 'beta', 'fil', 'p_thres', 'n', 'acc', 'fil_p', 'fil_r', 'fil_f1', 'align_p', 'align_r', 'align_f1']).convert_dtypes()
-    
-    if beta==100 and fil==1 and p_thres==1:
-        print(f"finish {(k, beta, fil, p_thres, at, analyse)}")
-
-    if analyse:
-        return score_df, TP, TN, FP, FN, FA
-    else:
-        return score_df
-
 def get_RFR_aggregated(row, k, beta, fil, p_thres):
     '''
     get aggregated answer using FRF method
@@ -121,3 +100,75 @@ def get_kernel_retrieved_df(retrieved_df):
     kerneled_df = group_by_sid(kerneled_df) # group retrived fragments by sentence id
     kerneled_df.columns = ['id', 'candidates', 'similarity']
     return kerneled_df
+
+##################################################
+### get aggregate setting                      ###
+##################################################
+def get_aggregate_setting(method:str, setting_code:int):
+    ''' 
+    get aggregate setting from setting_code
+
+    parameters
+    ----------
+    method: string. method to identify aggregate parset
+    setting_code: int. setting code to get the setting_dict
+
+    returns
+    -------
+    base_encoder_name: string. name to get base encoder model
+    args: list. list of parameters for represent method
+    '''
+
+    with open('config/run.json') as f: # load RFR-CLSR json setting
+        setting_dict = json.load(f)
+    setting_code = str(setting_code)
+
+    if not setting_code in setting_dict['aggregate_setting'][method].keys(): # check setting code existance
+        raise ValueError(f"invalid {method} aggregate setting_code")
+    
+    setting = setting_dict['aggregate_setting'][method][setting_code]
+    if method == 'RFR':
+        aggregate_parser = RFR_parser
+    else:
+        return ValueError("invalid aggregate method")
+
+    return aggregate_parser(setting)
+
+def RFR_parser(setting):
+    
+    keys = setting.keys()
+    if 'description' in keys: # get description
+        DESCRIPTION = setting['description']
+    else:
+        raise ValueError('missing experiment description')
+    
+    if 'kNN' in keys: # get k for kNN
+        start, stop, step = setting['kNN']
+    else:
+        start, stop, step = 5, 51, 5
+    kNN = np.arange(start, stop, step)
+    
+    if 'beta' in keys: # get spiking coefficient
+        start, stop, step = setting['beta']
+    else:
+        start, stop, step = 50, 101, 5
+    beta = np.arange(start, stop, step)
+
+    if 'p_min_entropy' in keys: # get pecentage of min entropy
+        start, stop, step = setting['p_min_entropy']
+    else:
+        start, stop, step = 0.2, 1, 9
+    p_min_entropy = np.linspace(start, stop, step)
+    
+    if 'p_thres' in keys: # get 
+        start, stop, step = setting['p_thres']
+    else:
+        start, stop, step = 0.3, 1, 8
+    p_thres = np.linspace(start, stop, step)
+
+    if 'at' in keys:
+        at = setting['at']
+    else:
+        at = np.array([1, 5,10])
+    
+    return (kNN, beta, p_min_entropy, p_thres, at)
