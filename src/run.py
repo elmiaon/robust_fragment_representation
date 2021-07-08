@@ -18,6 +18,7 @@ import src.tokenize as tokenize
 import src.represent as represent
 import src.retrieve as retrieve
 import src.tune as tune
+import src.analysis as analysis
 import src.get_test_score as get_test_score
 # import src.aggregator as aggregator
 
@@ -223,13 +224,13 @@ def RFR_CLSR(args):
     logger.info(f"step {step}/{n_steps} - tuning parameter in {toc-tic:.2f} second(s)")
     step+=1
     
-    # #####
-    # # 4.) Looking around
-    # #####
-    # tic = time()
-    # tune_retrieve_params.vary_around_best(EXP_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T, params)
-    # toc = time()
-    # logger.info(f"step {step}/{n_steps} - tuning parameter in {toc-tic:.2f} second(s)")
+    #####
+    # 4.5.) Looking around
+    #####
+    tic = time()
+    analysis.vary_around_params(SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T, params)
+    toc = time()
+    logger.info(f"step {step}/{n_steps} - tuning parameter in {toc-tic:.2f} second(s)")
     # step+=1
 
     #####
