@@ -107,7 +107,7 @@ def check_input(corpus:str, sub_corpus:str, s:str, t:str, tokenize_method:str, r
 ##################################################
 ### get test score                             ###
 ##################################################
-def get_score(setting_code:int, corpus:str, sub_corpus:str,tune_corpus:str, tune_sub_corpus:str, s:str, t:str, params):
+def get_test_score(setting_code:int, corpus:str, sub_corpus:str,tune_corpus:str, tune_sub_corpus:str, s:str, t:str, params):
     '''
     get test score for the test set
 
