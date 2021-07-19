@@ -3,6 +3,7 @@
 ##################################################
 # basic lib
 from ast import literal_eval
+from collections import Counter
 import json
 import numpy as np
 import os
@@ -42,22 +43,10 @@ def run(filename:str):
             raise ValueError(f"invalid method")
         process(args) # run the experiment
 
-    results = {}
-    result_root_dir = f"data/results/{filename[4:-3]}"
-    utils.make_dir(result_root_dir)
-    for method, args in pipeline:
-        logger.info(f"collecting result from {method}, {args}")
-        collected_result = results.get(method, [])
-        if method == 'RFR-CLSR':
-            result_collect = RFR_result_collector
-        else:
-            raise ValueError(f"invalid method")
-        collected_result.append(result_collect(args))
-        results[method] = collected_result
-    for key in results:
-        result_df = pd.concat(results[key], ignore_index=True)
-        print(result_df)
-        result_df.to_csv(f"{result_root_dir}/{key}.csv", sep='\t', index=False)
+    collect_result(filename)
+
+    stack_ensamble_posibility(filename)
+
 
 ##################################################
 ### get setting                                ###
@@ -264,7 +253,7 @@ def RFR_CLSR(args):
     # 8.) Get test score
     #####
     tic = time()
-    get_test_score.get_score(SETTING_CODE, TEST_CORPUS, TEST_SUB_CORPUS, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T, params)
+    get_test_score.get_test_score(SETTING_CODE, TEST_CORPUS, TEST_SUB_CORPUS, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T, params)
     toc = time()
     logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
     step+=1
@@ -281,6 +270,26 @@ def RFR_CLSR(args):
 ##################################################
 ### result_collector                           ###
 ##################################################
+def collect_result(filename):
+    logger = log.get_logger(__name__)
+    pipeline = get_experiment_pipeline(filename)
+    results = {}
+    result_root_dir = f"data/results/{filename[4:-3]}"
+    utils.make_dir(result_root_dir)
+    for method, args in pipeline:
+        logger.info(f"collecting result from {method}, {args}")
+        collected_result = results.get(method, [])
+        if method == 'RFR-CLSR':
+            result_collect = RFR_result_collector
+        else:
+            raise ValueError(f"invalid method")
+        collected_result.append(result_collect(args))
+        results[method] = collected_result
+    for key in results:
+        result_df = pd.concat(results[key], ignore_index=True)
+        print(result_df)
+        result_df.to_csv(f"{result_root_dir}/{key}.csv", sep='\t', index=False)
+
 def RFR_result_collector(args):
     SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, TEST_CORPUS, TEST_SUB_CORPUS, S, T = args # unpack args
     DESCRIPTION, TOKENIZE_METHOD, REPRESENT_METHOD, RETRIEVE_METHOD, AGGREGATE_METHOD = utils.get_experiment_setting(SETTING_CODE) # get experiment setting from setting_code
@@ -296,3 +305,60 @@ def RFR_result_collector(args):
         'setting': [SETTING_CODE]*len_result
     })
     return pd.concat([corpus_df, result_df], axis=1)
+
+##################################################
+### check input and output                     ###
+##################################################
+
+def stack_ensamble_posibility(filename):
+    pipeline = get_experiment_pipeline(filename)
+
+    process_dict = {}
+    for method, args in pipeline:
+        process_list = process_dict.get(method, [])
+        process_list.append(args)
+        process_dict[method] = process_list
+    
+    for method in process_dict:
+        if method == 'RFR-CLSR':
+            stack_ensamble_check = RFR_SEpos_checker
+            dataset = process_dict[method]
+        else:
+            raise ValueError(f"invalid method for stack ensamble possibility checker")
+        
+        for args in dataset:
+            temp = stack_ensamble_check(args)
+
+def RFR_SEpos_checker(args):
+    SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, TEST_CORPUS, TEST_SUB_CORPUS, S, T = args # unpack args
+    DESCRIPTION, TOKENIZE_METHOD, REPRESENT_METHOD, RETRIEVE_METHOD, AGGREGATE_METHOD = utils.get_experiment_setting(SETTING_CODE) # get experiment setting from setting_code
+
+
+    if os.path.isfile(f"data/reformatted/{TEST_CORPUS}/{TEST_SUB_CORPUS}/{S}-{T}.gold.csv"):
+        gold_dir = f"data/reformatted/{TEST_CORPUS}/{TEST_SUB_CORPUS}/{S}-{T}.gold.csv"
+    elif os.path.isfile(f"data/reformatted/{TEST_CORPUS}/{TEST_SUB_CORPUS}/{T}-{S}.gold.csv"):
+        gold_dir = f"data/reformatted/{TEST_CORPUS}/{TEST_SUB_CORPUS}/{T}-{S}.gold.csv"
+    else:
+        raise ValueError(f"There is no reformatted gold file")
+    
+    gold_df = pd.read_csv(gold_dir, sep='\t')
+    
+    FN_dir = f"data/analysis/{TOKENIZE_METHOD}.{'s'.join(REPRESENT_METHOD)}.{'k'.join(RETRIEVE_METHOD)}.{'s'.join(AGGREGATE_METHOD)}/test_{TEST_CORPUS}_{TEST_SUB_CORPUS}.tune_{TUNE_CORPUS}_{TUNE_SUB_CORPUS}/{S}-{T}/FN.csv"
+    FN_df = pd.read_csv(FN_dir, sep='\t', converters={'candidates': literal_eval, 'prob': utils.byte_decode})
+
+    temp_df = pd.merge(FN_df, gold_df, left_on=['id'], right_on=[S])
+    temp_df.columns = ['id', 'candidates', 'prob', '_', 'pair']
+    temp_df = temp_df[['id', 'pair', 'candidates']]
+    # temp_df['ans'] = temp_df.apply(lambda x: len(np.where(np.array(x['candidates'])==x['pair'])[0]), axis=1)
+    temp_df['ans'] = temp_df.apply(lambda x: np.where(np.array(x['candidates'])==x['pair'])[0][0] if len(np.where(np.array(x['candidates'])==x['pair'])[0]) != 0 else -1, axis=1)
+    print(temp_df)
+    bins = Counter(temp_df['ans'])
+    distribution = [0, 0, 0, 0, 0]
+    for i in bins:
+        if i in [0, 1, 2]:
+            distribution[i] += bins[i]
+        elif i > 2:
+            distribution[3] += bins[i]
+        else:
+            distribution[i] += bins[i]
+    print(f"distribution: {distribution} ({distribution[0]/sum(distribution)})")
