@@ -96,7 +96,6 @@ def cal_score(aggregated_df, gold_df):
 
             TP_df = merge_df.loc[merge_df['correct'] == True][['id', 'candidates', 'prob']]
             FA_df = merge_df.loc[merge_df['correct'] == False][['id', 'candidates', 'prob']]
-
             n_TP = len(TP_df)
 
         if n_TP == 0:
@@ -115,8 +114,12 @@ def cal_score(aggregated_df, gold_df):
 def get_analysis_components(df, analysis_component_ids):
     analysis_df = []
     for ids in analysis_component_ids:
-        temp = df.loc[df['id'].isin(ids)][['id', 'candidates', 'prob']]
-        temp['prob'] = df['prob'].parallel_apply(utils.byte_encode)
+        if ids.empty:
+            temp = pd.DataFrame(columns=df.columns)
+            temp = temp[['id', 'candidates', 'prob']]
+        else:
+            temp = df.loc[df['id'].isin(ids)][['id', 'candidates', 'prob']]
+            temp['prob'] = df['prob'].parallel_apply(utils.byte_encode)
         analysis_df.append(temp)
     return analysis_df
     
