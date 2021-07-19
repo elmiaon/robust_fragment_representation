@@ -44,4 +44,5 @@ def vary_around_params(setting_code, corpus, sub_corpus, s, t, params):
         temp_names = params_names.copy()
         val = temp_vals.pop(i)
         name = temp_names.pop(i)
-        logger.info(f"\neffect of {name}:\n{result.loc[  (result[temp_names[0]]==temp_vals[0]) & (result[temp_names[1]]==temp_vals[1]) & (result[temp_names[2]]==temp_vals[2]) & (result[temp_names[3]]==temp_vals[3])  ]}")
+        factor_df = result.loc[  (result[temp_names[0]]==temp_vals[0]) & (result[temp_names[1]]==temp_vals[1]) & (result[temp_names[2]]==temp_vals[2]) & (result[temp_names[3]]==temp_vals[3])  ]
+        logger.info(f"\neffect of {name}:\n{factor_df}")
