@@ -70,7 +70,7 @@ def get_RFR_aggregated(row, k, beta, fil, p_thres):
     # sort aggregated
     unique_candidates = unique_candidates[sorted_unique_idx]
     unique_prob = unique_prob[sorted_unique_idx]
-    row['candidates'] = unique_candidates
+    row['candidates'] = tuple(unique_candidates)
     row['prob'] = unique_prob
     if unique_prob[0] < p_thres:
         row['ans'] = False
