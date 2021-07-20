@@ -21,6 +21,7 @@ import src.retrieve as retrieve
 import src.tune as tune
 import src.analysis as analysis
 import src.get_test_score as get_test_score
+import src.cal_score as cal_score
 # import src.aggregator as aggregator
 
 ##################################################
@@ -343,9 +344,13 @@ def RFR_SEpos_checker(args):
     
     gold_df = pd.read_csv(gold_dir, sep='\t')
     
-    FN_dir = f"data/analysis/{TOKENIZE_METHOD}.{'s'.join(REPRESENT_METHOD)}.{'k'.join(RETRIEVE_METHOD)}.{'s'.join(AGGREGATE_METHOD)}/test_{TEST_CORPUS}_{TEST_SUB_CORPUS}.tune_{TUNE_CORPUS}_{TUNE_SUB_CORPUS}/{S}-{T}/FN.csv"
-    FN_df = pd.read_csv(FN_dir, sep='\t', converters={'candidates': literal_eval, 'prob': utils.byte_decode})
-
+    analysis_component_dir = f"data/analysis/{TOKENIZE_METHOD}.{'s'.join(REPRESENT_METHOD)}.{'k'.join(RETRIEVE_METHOD)}.{'s'.join(AGGREGATE_METHOD)}/test_{TEST_CORPUS}_{TEST_SUB_CORPUS}.tune_{TUNE_CORPUS}_{TUNE_SUB_CORPUS}/{S}-{T}"
+    TP_df = pd.read_csv(f"{analysis_component_dir}/TP.csv", sep='\t', converters={'candidates': literal_eval, 'prob': utils.byte_decode})
+    TN_df = pd.read_csv(f"{analysis_component_dir}/TN.csv", sep='\t', converters={'candidates': literal_eval, 'prob': utils.byte_decode})
+    FP_df = pd.read_csv(f"{analysis_component_dir}/FP.csv", sep='\t', converters={'candidates': literal_eval, 'prob': utils.byte_decode})
+    FN_df = pd.read_csv(f"{analysis_component_dir}/FN.csv", sep='\t', converters={'candidates': literal_eval, 'prob': utils.byte_decode})
+    FA_df = pd.read_csv(f"{analysis_component_dir}/FA.csv", sep='\t', converters={'candidates': literal_eval, 'prob': utils.byte_decode})
+    
     temp_df = pd.merge(FN_df, gold_df, left_on=['id'], right_on=[S])
     temp_df.columns = ['id', 'candidates', 'prob', '_', 'pair']
     temp_df = temp_df[['id', 'pair', 'candidates']]
@@ -361,4 +366,20 @@ def RFR_SEpos_checker(args):
             distribution[3] += bins[i]
         else:
             distribution[i] += bins[i]
-    print(f"distribution: {distribution} ({distribution[0]/sum(distribution)})")
+    print(f"distribution: {distribution} ({distribution[0]/sum(distribution)} from {sum(distribution)})")
+
+    print(f"breakdown: {len(TP_df)}, {len(TN_df)}, {len(FP_df)}, {len(FN_df)}, {len(FA_df)}")
+
+    precision = len(TP_df)/(len(TP_df)+len(FP_df)+len(FA_df))
+
+    recall = len(TP_df)/(len(TP_df)+len(FN_df))
+
+    align_f1 = cal_score.f1(precision, recall)
+
+    print(f"current_score: {precision}, {recall}, {align_f1}")
+
+    improved_precision = (len(TP_df)+distribution[0])/( (len(TP_df)+distribution[0])+len(FP_df)+len(FA_df) )
+    improved_recall = (len(TP_df)+distribution[0])/( len(TP_df)+len(FN_df) )
+    improved_f1 = cal_score.f1(improved_precision, improved_recall)
+
+    print(f"imporve_score: {improved_precision}, {improved_recall}, {improved_f1}")
