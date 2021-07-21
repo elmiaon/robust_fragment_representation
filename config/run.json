@@ -54,7 +54,9 @@
     },
 
     "setting":{
-        "0": {"description": "default value for every component"}
+        "0": {"description": "default value for every component"},
+        "1": {"description": "tune RFR aggregator with full range",
+              "aggregate_method": ["RFR", "full"]}
     },
         
     "representation_setting":{
@@ -66,7 +68,7 @@
     "aggregate_setting":{
         "RFR":{
             "0": {"description": "default range for RFR aggregator"},
-            "1": {
+            "full": {
                 "description": "full range of tuning",
                 "kNN": [5, 51, 5],
                 "beta": [0, 101, 5],
