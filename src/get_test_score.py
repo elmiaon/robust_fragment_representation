@@ -51,6 +51,10 @@ def check_output(corpus:str, sub_corpus:str, tune_corpus:str, tune_sub_corpus:st
     utils.make_dir(f"{score_output_corpus_dir}") # create output dir
     score_output_dir = f"{score_output_corpus_dir}/test_{corpus}_{sub_corpus}.tune_{tune_corpus}_{tune_sub_corpus}.{s}-{t}.csv"
 
+    ans_output_corpus_dir = f"data/ans/{tokenize_method}.{'s'.join(represent_method)}.{'k'.join(retrieve_method)}.{'s'.join(aggregate_method)}"
+    utils.make_dir(f"{ans_output_corpus_dir}")
+    ans_output_dir = f"{ans_output_corpus_dir}/test_{corpus}_{sub_corpus}.tune_{tune_corpus}_{tune_sub_corpus}.{s}-{t}.csv"
+
     analysis_output_corpus_dir = f"data/analysis/{tokenize_method}.{'s'.join(represent_method)}.{'k'.join(retrieve_method)}.{'s'.join(aggregate_method)}/test_{corpus}_{sub_corpus}.tune_{tune_corpus}_{tune_sub_corpus}/{s}-{t}" # define output dir
     utils.make_dir(f"{analysis_output_corpus_dir}") #create analysis output dir
     TP_output_dir = f"{analysis_output_corpus_dir}/TP.csv"
@@ -60,6 +64,7 @@ def check_output(corpus:str, sub_corpus:str, tune_corpus:str, tune_sub_corpus:st
     FA_output_dir = f"{analysis_output_corpus_dir}/FA.csv"
     # check output to skip
     skip = os.path.isfile(score_output_dir) and \
+           os.path.isfile(ans_output_dir) and \
            os.path.isfile(TP_output_dir) and \
            os.path.isfile(TN_output_dir) and \
            os.path.isfile(FP_output_dir) and \
@@ -137,7 +142,7 @@ def get_test_score(setting_code:int, corpus:str, sub_corpus:str,tune_corpus:str,
 
     _, tokenize_method, represent_method, retrieve_method, aggregate_method = utils.get_experiment_setting(setting_code) # get settings
 
-    skip, score_output_dir, TP_outout_dir, TN_outout_dir, FP_outout_dir, FN_outout_dir, FA_outout_dir = check_output(corpus, sub_corpus, tune_corpus, tune_sub_corpus, s, t, tokenize_method, represent_method, retrieve_method, aggregate_method) # check output existance
+    skip, score_output_dir, ans_output_dir, TP_outout_dir, TN_outout_dir, FP_outout_dir, FN_outout_dir, FA_outout_dir = check_output(corpus, sub_corpus, tune_corpus, tune_sub_corpus, s, t, tokenize_method, represent_method, retrieve_method, aggregate_method) # check output existance
 
     if not skip:
 
@@ -163,8 +168,9 @@ def get_test_score(setting_code:int, corpus:str, sub_corpus:str,tune_corpus:str,
         else:
             raise ValueError(f"invalid aggregator tuning method")
     
-        score_df, TP, TN, FP, FN, FA = get_score(args)
+        score_df, ans, TP, TN, FP, FN, FA = get_score(args)
         score_df.to_csv(score_output_dir, sep='\t', index=False)
+        ans.to_csv(ans_output_dir, sep='\t', index=False)
         TP.to_csv(TP_outout_dir, sep='\t', index=False) 
         TN.to_csv(TN_outout_dir, sep='\t', index=False) 
         FP.to_csv(FP_outout_dir, sep='\t', index=False) 

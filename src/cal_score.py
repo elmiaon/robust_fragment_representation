@@ -109,7 +109,7 @@ def cal_score(aggregated_df, gold_df):
 
     acc = (n_TN + n_TP)/n_aggregated
 
-    return np.array([acc, fil_p, fil_r, fil_f1, align_p, align_r, align_f1]), [TP_df['id'], TN_df['id'], FP_df['id'], FN_df['id'], FA_df['id']]
+    return np.array([acc, fil_p, fil_r, fil_f1, align_p, align_r, align_f1]), aggregated_df, [TP_df['id'], TN_df['id'], FP_df['id'], FN_df['id'], FA_df['id']]
 
 def get_analysis_components(df, analysis_component_ids):
     analysis_df = []
