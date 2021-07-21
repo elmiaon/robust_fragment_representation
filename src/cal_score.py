@@ -35,7 +35,7 @@ def get_RFR_result(args):
         ans_df['candidates'] = ans_df['candidates'].apply(lambda x: x[:n])
         score, analysis_component_ids = cal_score(ans_df, gold_df)
         if n == 1 and analyse:
-            TP, TN, FP, FN, FA = get_analysis_components(aggregated_df, analysis_component_ids)
+            ans, TP, TN, FP, FN, FA = get_analysis_components(aggregated_df, analysis_component_ids)
         scores.append(np.concatenate([[k, beta, fil, p_thres, n], score], axis=None))
     score_df = pd.DataFrame(scores, columns=['k', 'beta', 'fil', 'p_thres', 'n', 'acc', 'fil_p', 'fil_r', 'fil_f1', 'align_p', 'align_r', 'align_f1']).convert_dtypes()
     
@@ -43,7 +43,7 @@ def get_RFR_result(args):
         print(f"finish {(k, beta, fil, p_thres, at, analyse)}")
 
     if analyse:
-        return score_df, TP, TN, FP, FN, FA
+        return score_df, ans, TP, TN, FP, FN, FA
     else:
         return score_df
 
@@ -109,17 +109,18 @@ def cal_score(aggregated_df, gold_df):
 
     acc = (n_TN + n_TP)/n_aggregated
 
-    return np.array([acc, fil_p, fil_r, fil_f1, align_p, align_r, align_f1]), aggregated_df, [TP_df['id'], TN_df['id'], FP_df['id'], FN_df['id'], FA_df['id']]
+    return np.array([acc, fil_p, fil_r, fil_f1, align_p, align_r, align_f1]), [TP_df['id'], TN_df['id'], FP_df['id'], FN_df['id'], FA_df['id']]
 
 def get_analysis_components(df, analysis_component_ids):
-    analysis_df = []
+    
+    df['prob'] = df['prob'].parallel_apply(utils.byte_encode)
+    analysis_df = [df]
     for ids in analysis_component_ids:
         if ids.empty:
             temp = pd.DataFrame(columns=df.columns)
             temp = temp[['id', 'candidates', 'prob']]
         else:
             temp = df.loc[df['id'].isin(ids)][['id', 'candidates', 'prob']]
-            temp['prob'] = df['prob'].parallel_apply(utils.byte_encode)
         analysis_df.append(temp)
     return analysis_df
     

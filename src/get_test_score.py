@@ -72,9 +72,9 @@ def check_output(corpus:str, sub_corpus:str, tune_corpus:str, tune_sub_corpus:st
            os.path.isfile(FA_output_dir)
 
     if skip:
-        return True, score_output_dir, TP_output_dir, TN_output_dir, FP_output_dir, FN_output_dir, FA_output_dir
+        return True, score_output_dir, ans_output_dir, TP_output_dir, TN_output_dir, FP_output_dir, FN_output_dir, FA_output_dir
     else:
-        return False, score_output_dir, TP_output_dir, TN_output_dir, FP_output_dir, FN_output_dir, FA_output_dir
+        return False, score_output_dir, ans_output_dir, TP_output_dir, TN_output_dir, FP_output_dir, FN_output_dir, FA_output_dir
 
 def check_input(corpus:str, sub_corpus:str, s:str, t:str, tokenize_method:str, represent_method:list, retrieve_method:list):
     '''
