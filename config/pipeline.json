@@ -1,0 +1,7 @@
+{
+    "RFR":
+    {
+        "Description": "[tokenized, represent, retrieve, aggregate] method",
+        "0": ["RFRt", ["RFRr", "0"], ["cosine", "50"], ["RFRa", "0"]]
+    }
+}
