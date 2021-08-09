@@ -99,83 +99,77 @@ def check_input(corpus:str, sub_corpus:str, s:str, t:str):
         return input_dir_bwd
     else: # error if there is no tokenized file
         raise FileExistsError(f"There is no tokenized {corpus}-{sub_corpus}")
-    
-##################################################
-### CLSR_tokenize                              ###
-##################################################
-def CLSR(setting_code:int, corpus:str, sub_corpus:str, s:str, t:str, chunksize:int=10000):
-    '''
-    tokenize sentences in the corpus
-    input : 
-        setting_code(int) - setting_code to get the experiment parameter
-        corpus(str), sub_corpus(str) - corpus and sub corpus to be tokenzied
-        s(str), t(str) - source and target language to be tokenized, respectively
-    output: tokenized dataset files(csv) - saved in data/tokenized/ directory
-    '''
-    _, tokenize_method, _, _, _ = utils.get_experiment_setting(setting_code)
-    logger = log.get_logger(__name__)
 
-    # ckeck output existance
+def tokenize(tokenize_method:str, corpus:str, sub_corpus:str, s:str, t:str):
+    '''
+    tokenize the reformatted corpus
+
+    parameters
+    ----------
+    tokenize_method: str. method to tokenize the reformatted corpus
+    corpus: str. corpus name
+    sub_corpus: str. sub corpus name
+    s: str. source language
+    t: str. target language
+
+    returns
+    -------
+    None
+
+    * Note: there is not return but the function save result in data/tokenized/ directory
+    '''
     skip, output_dir = check_output(corpus, sub_corpus, s, t, tokenize_method)
 
     if not skip:
 
-        # check the reformatted dataset to be tokenized
         input_dir = check_input(corpus, sub_corpus, s, t)
 
-        # tokenize {s} and {t} corpus
-        for lang in [s, t]:
-            in_dir = input_dir[lang] # define input dir for the specific language
-            out_dir = output_dir[lang] # define output dir for the specific language
-
-            if not os.path.isfile(out_dir):
-                tokenized_list = [] # define to store tokenized chunk
-
-                for idx_chunk, chunk in enumerate(pd.read_csv(in_dir, sep='\t', chunksize=chunksize)): # read csv chunk-by-chunk
-                    tokenized_list.append(CLSR_tokenizer(chunk, tokenize_method)) # tokenize each chunk
-                    print(f"finish {s}-{t}.{lang} part {idx_chunk+1} tokenization") # print to tell the status of each chunk
-                    
-                df = pd.concat(tokenized_list, ignore_index=True) # concatenate all chunk
-                df.to_csv(out_dir, sep='\t', index=False) # save the tokenized
-            
-                logger.info(f"finish {corpus}-{sub_corpus}.{s}-{t}.{lang} tokenzation")
-                logger.info(f"sample:\n{df}") # show some sample
-            
-            else:
-                logger.info(f"skip {corpus}-{sub_corpus}.{s}-{t}.{lang} tokenzation") # the tokenize step for specific language is skipped
+        if tokenize_method == 'RFRt':
+            execute_tokenize = RFRt
+        else:
+            raise ValueError(f"Invalid tokenize method")
+        
+        execute_tokenize(input_dir, output_dir)
+    
     else:
         logger.info(f"skip {corpus}-{sub_corpus}.{s}-{t} tokenization") # the tokenize step is skipped
 
 ##################################################
-### tokenize method                            ###
+### RFRt                                       ###
 ##################################################
-
-### CLSR_tokenizer ###
-def CLSR_tokenizer(df, tokenize_method:str):
+def RFRt(input_dir:dict, output_dir:dict, chunksize:int=10000):
     '''
-    CLSR tokenize for input dataframe
-
+    tokenize sentences in the corpus
+    
     parameters
     ----------
-    df: dataframe. dataframe to be tokenized with [id, {language}] as columns
-    tokenize_method: string
-
-    returns
-    -------
-    tokenized_dataframe: dataframe. tokenized dataframe with dropped Nan
+    input_dir: dict. input directory with language as key
+    output_dir: dict. output directory with language as key
+    chunksize: int. default=10000. 
     '''
-    sid, lang = df.columns # get each column to indicate the input language
 
-    # select tokenizer
-    if tokenize_method == 'RFR':
-        tokenizer = RFR_tokenize_sentence
-        args = [lang]
-    else:
-        raise ValueError(f"invalid tokenizer")
+    logger = log.get_logger(__name__)
+    # tokenize {s} and {t} corpus
+    for lang in input_dir:
+        in_dir = input_dir[lang] # define input dir for the specific language
+        out_dir = output_dir[lang] # define output dir for the specific language
 
-    df[lang] = df[lang].parallel_apply(tokenizer, args=[*args]) # tokenize each sentence
-    df = df.dropna() # drop Nan row
-    return df
+        if not os.path.isfile(out_dir):
+            tokenized_list = [] # define to store tokenized chunk
+
+            for idx_chunk, chunk in enumerate(pd.read_csv(in_dir, sep='\t', chunksize=chunksize)): # read csv chunk-by-chunk
+                chunk[lang] = chunk[lang].parallel_apply(RFR_tokenize_sentence, args=[lang,])
+                tokenized_list.append(chunk) # tokenize each chunk
+                print(f"finish {lang} tokenization part {idx_chunk+1}") # print to tell the status of each chunk
+                
+            df = pd.concat(tokenized_list, ignore_index=True) # concatenate all chunk
+            df.to_csv(out_dir, sep='\t', index=False) # save the tokenized
+        
+            logger.info(f"finish {lang} tokenzation")
+            logger.info(f"sample:\n{df}") # show some sample
+        
+        else:
+            logger.info(f"skip {lang} tokenzation") # the tokenize step for specific language is skipped
 
 def RFR_tokenize_sentence(sentence:str, lang:str):
     '''
