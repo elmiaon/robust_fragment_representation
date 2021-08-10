@@ -9,7 +9,7 @@ import src.log as log
 # custom lib
 import src.utils as utils
 from src.tokenize import tokenize
-import src.represent as represent
+from src.represent import represent
 import src.retrieve as retrieve
 import src.tune as tune
 import src.analysis as analysis
@@ -60,14 +60,14 @@ def RFR(method_params, corpus):
     logger.info(f"step {step}/{n_steps} - preprocess training data in {toc-tic:.2f} second(s)")
     step+=1
 
-    # #####
-    # # 2.) Represent the training dataset
-    # #####
-    # tic = time()
-    # represent.CLSR(SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
-    # toc = time()
-    # logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
-    # step+=1
+    #####
+    # 2.) Represent the training dataset
+    #####
+    tic = time()
+    represent(TOKENIZE_METHOD, REPRESENT_METHOD, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
+    toc = time()
+    logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
+    step+=1
 
     # #####
     # # 3.) Retrieve the training dataset
