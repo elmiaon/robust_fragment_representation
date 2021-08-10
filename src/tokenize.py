@@ -2,21 +2,10 @@
 ### import                                     ###
 ##################################################
 # basic lib
-import json
-import numpy as np
 import os
-import pandas as pd
-from pandarallel import pandarallel
-pandarallel.initialize(use_memory_fs=False)
-import string
 # logging lib
 import logging
 import src.log as log
-# time lib
-from time import time
-# nlp lib
-import re
-from pythainlp.tokenize import word_tokenize
 # custom lib
 import src.utils as utils
 from src.tokenizer.RFRt import RFRt
@@ -117,7 +106,7 @@ def tokenize(tokenize_method:str, corpus:str, sub_corpus:str, s:str, t:str):
     * Note: there is not return but the function save result in data/tokenized/ directory
     '''
     logger = log.get_logger(__name__)
-    
+
     skip, output_dir = check_output(corpus, sub_corpus, s, t, tokenize_method)
 
     if not skip:

@@ -171,9 +171,8 @@ def RFRr_parser(setting_code:str):
     returns
     -------
     base_encoder: str. base_encoder name
-    args_tuple: tuple. tuple of (n_grams, sentence_length)
-        n_grams: int. number of grams to create fragment
-        sentence_length: int. minimum sentence length to create fragment
+    n_grams: int. number of grams to create fragment
+    sentence_length: int. minimum sentence length to create fragment
     '''
 
     with open('config/represent.json') as f: # load RFR-CLSR json setting
