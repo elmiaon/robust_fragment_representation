@@ -46,9 +46,9 @@ def check_output(corpus:str, sub_corpus:str, s:str, t:str, tokenize_method:str, 
     skip: bool. skip boolean to skip the tokenized process
     output_dir: list. output dict for save the tokenized sentences
     '''
-    output_corpus_dir = f"data/retrieved/{corpus}/{sub_corpus}/{'k'.join(retrieve_method)}" # define output dir
+    output_corpus_dir = f"data/retrieved/{corpus}/{sub_corpus}/{''.join(retrieve_method)}" # define output dir
     utils.make_dir(f"{output_corpus_dir}") # create output dir
-    output_dir = f"{output_corpus_dir}/{tokenize_method}.{'s'.join(represent_method)}.{s}-{t}.csv"
+    output_dir = f"{output_corpus_dir}/{tokenize_method}.{''.join(represent_method)}.{s}-{t}.csv"
 
     # check output to skip
     if os.path.isfile(output_dir):
@@ -73,7 +73,7 @@ def check_input(corpus:str, sub_corpus:str, s:str, t:str, tokenize_method:str, r
     input_dir: list. output dict for save the tokenized sentences
     '''
     # check the tokenized dataset to be represented
-    input_corpus_dir = f"data/represented/{corpus}/{sub_corpus}/{'s'.join(represent_method)}" # define input dir
+    input_corpus_dir = f"data/represented/{corpus}/{sub_corpus}/{''.join(represent_method)}" # define input dir
 
     input_dir_fwd = {
         s: f"{input_corpus_dir}/{tokenize_method}.{s}-{t}.{s}.csv",
@@ -93,29 +93,31 @@ def check_input(corpus:str, sub_corpus:str, s:str, t:str, tokenize_method:str, r
         raise FileExistsError(f"There is no represented {corpus}-{sub_corpus}")
 
 ##################################################
-### CLSR retrieval                             ###
+### Interface                                  ###
 ##################################################
-def CLSR(setting_code:int, corpus:str, sub_corpus:str, s:str, t:str, chunksize:int=1000):
+def retrieve(tokenize_method:str, represent_method:list, retrieve_method:list, corpus:str, sub_corpus:str, s:str, t:str, chunksize:int=1000):
     '''
-    retrieve fragment for CLSR task
+    retrieve similar fragments from given similarity function
 
     parameters
     ----------
-    setting_code: int. setting_code to get the experiment parameters
-    corpus: string. corpus to be represented
-    sub_corpus: string. sub corpus to be represented
-    s: string. source langugae to be represented
-    t: string. target language to be represented
+    tokenize_method: str. method to tokenize the reformatted corpus
+    represent_method: list. list of [method, setting_code] to represent the tokenized corpus
+    retrieve_method: list. list of [similarity_function, top_k] to retrieve k-NN similar target fragments
+    corpus: str. corpus name
+    sub_corpus: str. sub corpus name
+    s: str. source language
+    t: str. target language
 
     returns
     -------
-    represented dataset files: csv. saved in data/represented/ directory
+    None
+
+    * Note: there is not return but the function save result in data/retrieved/ directory
     '''
 
     global t_vec, t_label
     logger = log.get_logger(__name__)
-
-    _, tokenize_method, represent_method, retrieve_method, _ = utils.get_experiment_setting(setting_code)
 
     skip, output_dir = check_output(corpus, sub_corpus, s, t, tokenize_method, represent_method, retrieve_method)
     

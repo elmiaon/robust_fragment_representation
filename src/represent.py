@@ -95,7 +95,7 @@ def represent(tokenize_method:str, represent_method:str, corpus:str, sub_corpus:
     parameters
     ----------
     tokenize_method: str. method to tokenize the reformatted corpus
-    represent_method: str. method to represent the tokenized corpus
+    represent_method: list. list of [method, setting_code] to represent the tokenized corpus
     corpus: str. corpus name
     sub_corpus: str. sub corpus name
     s: str. source language

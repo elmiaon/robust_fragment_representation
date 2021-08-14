@@ -1,0 +1,13 @@
+{
+    "RFRa":{
+        "0": {"description": "default range for RFR aggregator"},
+        "full": {
+            "description": "full range of tuning",
+            "kNN": [5, 51, 5],
+            "beta": [0, 101, 5],
+            "p_min_entropy": [0, 1, 11],
+            "p_thres": [0.1, 1, 10],
+            "n_ans": 10
+        }
+    }
+}

@@ -24,11 +24,103 @@ PROCESS_NUM = mp.cpu_count()-2
 import src.utils as utils
 import src.cal_score as cal_score
 
+
+##################################################
+### tune and test                              ###
+##################################################
+def tune(setting_code:str, input_dir:str, gold_dir:str, output_dir:str):
+
+    filename = input_dir.split('/')[-1]
+    lang_pair = filename.split('.')[-2]
+    s, t = lang_pair.split('-')
+
+    gold_df = pd.read_csv(gold_dir, sep='\t') # load gold
+    gold_df = gold_df[[s, t]] # reorder columns
+    gold_df.columns = ['id', 'pair'] # rename gold_df columns
+
+    retrieved_df = pd.read_csv(input_dir, sep='\t', converters={'candidates': literal_eval, 'distance': utils.byte_decode})
+    kerneled_df = get_kernel_retrieved_df(retrieved_df)
+
+    k_list, beta_list, filter_thres, p_thres, at = RFR_parser(setting_code)
+
+    params_set = [[kerneled_df], [gold_df], k_list, beta_list, filter_thres, p_thres, [at], [False]] # generate parameter set to save
+
+    mp_input = itertools.product(*params_set) # do permutation
+    with mp.Pool(processes=PROCESS_NUM) as p:
+        scores = p.map(get_RFRa_result, mp_input)
+    
+    scores_df = pd.concat(scores)
+    scores_df.to_csv(output_dir, sep='\t', index=False)
+
+    return scores_df
+
+def test(setting_code:str, input_dir:str, gold_dir:str, 
+         score_output_dir:str, ans_output_dir:str, 
+         TP_output_dir:str, TN_output_dir:str, 
+         FP_output_dir:str, FN_output_dir:str, 
+         FA_output_dir:str, 
+         params):
+
+    filename = input_dir.split('/')[-1]
+    lang_pair = filename.split('.')[-2]
+    s, t = lang_pair.split('-')
+
+    gold_df = pd.read_csv(gold_dir, sep='\t') # load gold
+    gold_df = gold_df[[s, t]] # reorder columns
+    gold_df.columns = ['id', 'pair'] # rename gold_df columns
+
+    retrieved_df = pd.read_csv(input_dir, sep='\t', converters={'candidates': literal_eval, 'distance': utils.byte_decode})
+    kerneled_df = get_kernel_retrieved_df(retrieved_df)
+
+    k, beta, fil, p_thres, at = RFR_parser(setting_code)
+
+    k, beta, fil, p_thres = params
+    k = int(k)
+    beta = int(beta)
+
+    args = (kerneled_df, gold_df, k, beta, fil, p_thres, at, True)
+
+    score_df, ans, TP, TN, FP, FN, FA = get_RFRa_result(args)
+
+    score_df.to_csv(score_output_dir, sep='\t', index=False)
+    ans.to_csv(ans_output_dir, sep='\t', index=False)
+    TP.to_csv(TP_output_dir, sep='\t', index=False) 
+    TN.to_csv(TN_output_dir, sep='\t', index=False) 
+    FP.to_csv(FP_output_dir, sep='\t', index=False) 
+    FN.to_csv(FN_output_dir, sep='\t', index=False) 
+    FA.to_csv(FA_output_dir, sep='\t', index=False)
+
+    return score_df, ans, TP, TN, FP, FN, FA
+
+
+##################################################
+### get RFRa result                            ###
+##################################################
+def get_RFRa_result(args):
+    kerneled_df, gold_df, k, beta, fil, p_thres, at, analyse = args
+    aggregated_df = kerneled_df.apply(get_RFRa_aggregated, args=(k, beta, fil, p_thres), axis=1)
+    scores = []
+    for n in at:
+        ans_df = aggregated_df.copy()
+        ans_df['candidates'] = ans_df['candidates'].apply(lambda x: x[:n])
+        score, analysis_component_ids = cal_score.cal_score(ans_df, gold_df)
+        if n == 1 and analyse:
+            ans, TP, TN, FP, FN, FA = cal_score.get_analysis_components(aggregated_df, analysis_component_ids)
+        scores.append(np.concatenate([[k, beta, fil, p_thres, n], score], axis=None))
+    score_df = pd.DataFrame(scores, columns=['k', 'beta', 'fil', 'p_thres', 'n', 'acc', 'fil_p', 'fil_r', 'fil_f1', 'align_p', 'align_r', 'align_f1']).convert_dtypes()
+    
+    if beta==100 and fil==1 and p_thres==1:
+        print(f"finish {(k, beta, fil, p_thres, at, analyse)}")
+
+    if analyse:
+        return score_df, ans, TP, TN, FP, FN, FA
+    else:
+        return score_df
+
 ##################################################
 ### RFR aggregator                             ###
 ##################################################
-
-def get_RFR_aggregated(row, k, beta, fil, p_thres):
+def get_RFRa_aggregated(row, k, beta, fil, p_thres):
     '''
     get aggregated answer using FRF method
 
@@ -104,38 +196,18 @@ def get_kernel_retrieved_df(retrieved_df):
 ##################################################
 ### get aggregate setting                      ###
 ##################################################
-def get_aggregate_setting(method:str, setting_code:int):
-    ''' 
-    get aggregate setting from setting_code
 
-    parameters
-    ----------
-    method: string. method to identify aggregate parset
-    setting_code: int. setting code to get the setting_dict
+def RFR_parser(setting_code):
 
-    returns
-    -------
-    base_encoder_name: string. name to get base encoder model
-    args: list. list of parameters for represent method
-    '''
-
-    with open('config/run.json') as f: # load RFR-CLSR json setting
+    with open('config/aggregate.json') as f: # load RFR-CLSR json setting
         setting_dict = json.load(f)
     setting_code = str(setting_code)
-
-    if not setting_code in setting_dict['aggregate_setting'][method].keys(): # check setting code existance
+    
+    if not setting_code in setting_dict['RFRa'].keys(): # check setting code existance
         raise ValueError(f"invalid {method} aggregate setting_code")
     
-    setting = setting_dict['aggregate_setting'][method][setting_code]
-    if method == 'RFR':
-        aggregate_parser = RFR_parser
-    else:
-        return ValueError("invalid aggregate method")
+    setting = setting_dict['RFRa'][setting_code]
 
-    return aggregate_parser(setting)
-
-def RFR_parser(setting):
-    
     keys = setting.keys()
     if 'description' in keys: # get description
         DESCRIPTION = setting['description']

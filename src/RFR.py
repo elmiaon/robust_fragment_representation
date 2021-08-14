@@ -10,10 +10,10 @@ import src.log as log
 import src.utils as utils
 from src.tokenize import tokenize
 from src.represent import represent
-import src.retrieve as retrieve
-import src.tune as tune
+from src.retrieve import retrieve
+from src.tune import tune
+from src.test import test
 import src.analysis as analysis
-import src.get_test_score as get_test_score
 import src.cal_score as cal_score
 
 def RFR(method_params, corpus):
@@ -69,25 +69,25 @@ def RFR(method_params, corpus):
     logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
     step+=1
 
-    # #####
-    # # 3.) Retrieve the training dataset
-    # #####
-    # tic = time()
-    # retrieve.CLSR(SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
-    # toc = time()
-    # logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
-    # step+=1
+    #####
+    # 3.) Retrieve the training dataset
+    #####
+    tic = time()
+    retrieve(TOKENIZE_METHOD, REPRESENT_METHOD, RETRIEVE_METHOD, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
+    toc = time()
+    logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
+    step+=1
 
 
-    # #####
-    # # 4.) Parameters tuning
-    # #####
-    # tic = time()
-    # params = tune.tune_aggregator(SETTING_CODE, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
-    # toc = time()
-    # logger.info(f"step {step}/{n_steps} - tuning parameter in {toc-tic:.2f} second(s)")
-    # step+=1
-    
+    #####
+    # 4.) Parameters tuning
+    #####
+    tic = time()
+    params = tune(TOKENIZE_METHOD, REPRESENT_METHOD, RETRIEVE_METHOD, AGGREGATE_METHOD, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T)
+    toc = time()
+    logger.info(f"step {step}/{n_steps} - tuning parameter in {toc-tic:.2f} second(s)")
+    step+=1
+
     # #####
     # # 4.5.) Looking around
     # #####
@@ -97,38 +97,38 @@ def RFR(method_params, corpus):
     # logger.info(f"step {step}/{n_steps} - tuning parameter in {toc-tic:.2f} second(s)")
     # # step+=1
 
-    # #####
-    # # 5.) tokenize the testing dataset
-    # #####
-    # tic = time()
-    # tokenize.CLSR(SETTING_CODE, TEST_CORPUS, TEST_SUB_CORPUS, S, T)
-    # toc = time()
-    # logger.info(f"step {step}/{n_steps} - preprocess training data in {toc-tic:.2f} second(s)")
-    # step+=1
+    #####
+    # 5.) tokenize the testing dataset
+    #####
+    tic = time()
+    tokenize(TOKENIZE_METHOD, TEST_CORPUS, TEST_SUB_CORPUS, S, T)
+    toc = time()
+    logger.info(f"step {step}/{n_steps} - preprocess training data in {toc-tic:.2f} second(s)")
+    step+=1
 
-    # #####
-    # # 6.) Represent the testing dataset
-    # #####
-    # tic = time()
-    # represent.CLSR(SETTING_CODE, TEST_CORPUS, TEST_SUB_CORPUS, S, T)
-    # toc = time()
-    # logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
-    # step+=1
+    #####
+    # 6.) Represent the testing dataset
+    #####
+    tic = time()
+    represent(TOKENIZE_METHOD, REPRESENT_METHOD, TEST_CORPUS, TEST_SUB_CORPUS, S, T)
+    toc = time()
+    logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
+    step+=1
 
-    # #####
-    # # 7.) Retrieve the training dataset
-    # #####
-    # tic = time()
-    # retrieve.CLSR(SETTING_CODE, TEST_CORPUS, TEST_SUB_CORPUS, S, T)
-    # toc = time()
-    # logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
-    # step+=1
+    #####
+    # 7.) Retrieve the training dataset
+    #####
+    tic = time()
+    retrieve(TOKENIZE_METHOD, REPRESENT_METHOD, RETRIEVE_METHOD, TEST_CORPUS, TEST_SUB_CORPUS, S, T)
+    toc = time()
+    logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
+    step+=1
 
-    # #####
-    # # 8.) Get test score
-    # #####
-    # tic = time()
-    # get_test_score.get_test_score(SETTING_CODE, TEST_CORPUS, TEST_SUB_CORPUS, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T, params)
-    # toc = time()
-    # logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
-    # step+=1
+    #####
+    # 8.) Get test score
+    #####
+    tic = time()
+    test(TOKENIZE_METHOD, REPRESENT_METHOD, RETRIEVE_METHOD, AGGREGATE_METHOD, TEST_CORPUS, TEST_SUB_CORPUS, TUNE_CORPUS, TUNE_SUB_CORPUS, S, T, params)
+    toc = time()
+    logger.info(f"step {step}/{n_steps} - retrieve candidates in {toc-tic:.2f} second(s)")
+    step+=1
