@@ -116,7 +116,7 @@ def RFR(method_params, corpus):
     step+=1
 
     #####
-    # 7.) Retrieve the training dataset
+    # 7.) Retrieve the test dataset
     #####
     tic = time()
     retrieve(TOKENIZE_METHOD, REPRESENT_METHOD, RETRIEVE_METHOD, TEST_CORPUS, TEST_SUB_CORPUS, S, T)

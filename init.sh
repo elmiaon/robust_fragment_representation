@@ -6,5 +6,3 @@ cd docker/
 docker build . -t ubuntu-python3
 docker-compose up -d
 cd ..
-docker exec -ti fragment_encoder /bin/bash
-cd /mount
