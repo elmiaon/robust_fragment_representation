@@ -3,6 +3,8 @@ services:
   sa_app:
     container_name: fragment_encoder
     image: ubuntu-python3
+    ports:
+      - "11527:8888"
     stdin_open: True
     tty: True
     volumes:
