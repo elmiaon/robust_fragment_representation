@@ -1,31 +1,32 @@
 # fragment_encoder
-ใน README นี้ประกอบด้วย
+README composed of
 
-- การสร้างและรัน docker
-- การโหลดและเตรียมข้อมูล
-- การรันโปรแกรม
+- Build and run docker
+- Load and prepare data
+- Run the program
+- How to use your own data
 
-## การสร้างและรัน docker
+## Build and run docker
 
-หลังจาก clone เสร็จให้ใช้คำสั่งด้านล่างเพื่อสร้าง docker
+after clone this git, run the snippet below to run docker
 
     sh init.sh
 
-จากนั้นใช้คำสั่งด้านล่างเพื่อเข้าสู่ docker ที่สร้างไว้
+Attach to running docker
 
     docker exec -ti fragment_encoder /bin/bash
     
-ใช้คำสั่งด้านล่างเพื่อไปยัง mount
+change direction to /mount
 
     cd /mount
     
-## การโหลดและเตรียมข้อมูล
+## Load and prepare data
     
-จากนั้นใช้คำสั่งด้านล่างเพื่อโหลด dataset ขั้นตอนนี้อาจไว้เวลานานหลายนาทีจนถึงชั่วโมง
+Run a snippet below to load dataset. This step may take several minutes to hours.
 
     bash load_opus.sh
     
-ถึงจุดนี้จะได้ไฟล์ในโฟลเดอร์ data ตามนี้
+At this point, you should get the data directory as shown below.
 
 - data/
     - raw/
@@ -34,7 +35,7 @@
             - QED/
             - TED2020/
 
-ใน JW300, QED, และ TED2020 จะมีไฟล์
+In JW300, QED, and TED2020 should have following files.
 
 - ar-en.ar
 - ar-en.en
@@ -45,20 +46,20 @@
 - th-en.en
 - th-en.th
 
-จากนั้นรันคำสั่งด้านล่างเพื่อเตรียมข้อมูลให้พร้อมรัน
+Run this snippet to reformat the data.
 
     python3 create.opus.py
 
-## การรันโปรแกรม
-ให้รันไฟล์ทดสอบตามคำสั่งด้านล่าง
+## Running the program
+run this file to test the program.
 
     python3 RFRv2.JW300s0main.test.py
     
-ถ้าโปรแกรมรันถูกต้องจะได้ไฟล์ด้านล่าง
+If the program runs correctly, you will get this file.
 
     data/tested/RFRt.RFRr0.cosine50.RFRa0/test_opus-JW300-CLSRs0_te-c50.tune_opus-JW300-CLSRs0_tu-c50.fr-en.csv
 
-ซึ่งเป็นตาราง csv ที่มีผลดังนี้
+which is the csv file that have same result with the table below.
 
 | k | beta | fil              | p_thres           |n  |acc   | fil_p             | fil_r| fil_f1            |align_p            | align_r| align_f1          |
 |---|------|------------------|-------------------|---|------|-------------------|------|-------------------|-------------------|--------|-------------------|
@@ -66,15 +67,15 @@
 |45 |90    |0.6000000000000001| 0.7999999999999999| 5 | 0.817| 0.9968652037617555| 0.636| 0.7765567765567766| 0.9968652037617555| 0.636  | 0.7765567765567766|
 |45 |90    |0.6000000000000001| 0.7999999999999999| 10| 0.817| 0.9968652037617555| 0.636| 0.7765567765567766| 0.9968652037617555| 0.636  | 0.7765567765567766|
 
-นอกจากนั้นผลการจับคู่จะแสดงอยู่ในไฟล์ csv ที่อยู่ใน directory ด้านล่าง
+In addition, you will have the pairing result as csv file in the following directory.
 
     data/ans/RFRt.RFRr0.cosine50.RFRa0/test_opus-JW300-CLSRs0_te-c50.tune_opus-JW300-CLSRs0_tu-c50.fr-en.csv
     
-โดยมี format ดังนี้
+the format is shown below.
 
-- id: sentence id ของประโยคใน source language
-- candidates: tuples ของ candidate sentences เรียงตาม prob จากมากไปน้อย
-- prob: byte string ของความน่าจะเป็นของแต่ละ candidate sentence
-- ans: boolene ที่จะบอกว่า top 1 candidate มีค่าสูงกว่า p_thres หรือไม่
-    - True หมายความว่า top1 เป็นคู่ของ query sentence
-    - False หมายความว่า ไม่มีคำตอบ
+- id: sentence id of each query sentence in source language
+- candidates: tuples of candidate sentences sort by probability in descending order
+- prob: byte string of probability of each candidate sentence
+- ans: boolean indicate if top 1 candidate probability > p_thres?
+    - True means top1 is a translation of query sentence
+    - False means this is a non-pairing query sentence
