@@ -1,4 +1,4 @@
-# fragment_encoder
+# Robust Fragment-Based Representation Framework for Cross-lingual Sentence Retrieval
 README composed of
 
 - Build and run docker
@@ -79,3 +79,32 @@ the format is shown below.
 - ans: boolean indicate if top 1 candidate probability > p_thres?
     - True means top1 is a translation of query sentence
     - False means this is a non-pairing query sentence
+
+## How to use your own data
+You can use your own dataset by follow these steps
+
+1. Prepare your data: Your data must have tuning set and test set. Each set composed of 3 files.
+    1. <source_language>-<target_language>.<source_languge>.csv
+    2. <source_language>-<target_language>.<target_languge>.csv
+    3. <source_language>-<target_language>.gold.csv
+    You can see the test data for the format of each file.
+2. Put your files in the following directory
+
+    data/reformatted/<dataset_name>/<tuning>/
+    data/reformatted/<dataset_name>/<test>/
+
+3. Your dataset in the config/corpus.json, for example,
+
+    "<new_dataset>": [
+        ["<new_dataset>"  , "tuning", "<new_dataset>"  , "test"],
+    ],
+
+4. Add new language config in config/language.json, for example,
+    
+    "<lang_setting_name>":[
+        ["<source_language>", "<target_language>"]
+    ]
+
+5. Duplicate and rename your running file from TEMPLATE.
+
+6. Running you file.
