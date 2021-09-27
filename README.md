@@ -84,27 +84,35 @@ the format is shown below.
 You can use your own dataset by follow these steps
 
 1. Prepare your data: Your data must have tuning set and test set. Each set composed of 3 files.
-    1. <source_language>-<target_language>.<source_languge>.csv
-    2. <source_language>-<target_language>.<target_languge>.csv
-    3. <source_language>-<target_language>.gold.csv
+
+    1. SOURCE_LANGUAGE-TARGET_LANGUAGE.SOURCE_LANGUAGE.csv: columns = [id, SOURCE_LANGUAGE]
+    2. SOURCE_LANGUAGE-TARGET_LANGUAGE.TARGET_LANGUAGE.csv: columns = [id, TARGET_LANGUAGE]
+    3. SOURCE_LANGUAGE-TARGET_LANGUAGE.gold.csv: columns = [SOURCE_LANGUAGE, TARGET_LANGUAGE]
+
     You can see the test data for the format of each file.
+    
 2. Put your files in the following directory
 
-    data/reformatted/<dataset_name>/<tuning>/
-    data/reformatted/<dataset_name>/<test>/
+    data/reformatted/DATASET_NAME/tuning/
+    
+    data/reformatted/DATASET_NAME/test/
 
 3. Your dataset in the config/corpus.json, for example,
 
-    "<new_dataset>": [
-        ["<new_dataset>"  , "tuning", "<new_dataset>"  , "test"],
+    <pre><code>
+    "YOUR_DATASET": [
+        ["YOURE_DATASET"  , "tuning", "YOUR_DATASET"  , "test"],
     ],
+    </code></pre>
 
 4. Add new language config in config/language.json, for example,
     
-    "<lang_setting_name>":[
-        ["<source_language>", "<target_language>"]
+    <pre><code>
+    "YOUR_DATASET":[
+        ["SOURCE_LANGUAGE", "TARGET_LANGUAGE"]
     ]
+    </code></pre>
 
-5. Duplicate and rename your running file from TEMPLATE.
+5. Duplicate and rename your running file from TEMPLATE, then, replace the setting at the head of the file.
 
 6. Running you file.
