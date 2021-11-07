@@ -1,4 +1,22 @@
-# Robust Fragment-Based Representation Framework for Cross-lingual Sentence Retrieval
+# Robust Fragment-Based Representation Framework for Cross-lingual Sentence Retrieval (EMNLP'21 finding)
+
+@inproceedings{trijakwanich-etal-2021-robust-fragment,
+    title = "Robust Fragment-Based Framework for Cross-lingual Sentence Retrieval",
+    author = "Trijakwanich, Nattapol  and
+      Limkonchotiwat, Peerat  and
+      Sarwar, Raheem  and
+      Phatthiyaphaibun, Wannaphong  and
+      Chuangsuwanich, Ekapol  and
+      Nutanong, Sarana",
+    booktitle = "Findings of the Association for Computational Linguistics: EMNLP 2021",
+    month = nov,
+    year = "2021",
+    address = "Punta Cana, Dominican Republic",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2021.findings-emnlp.80",
+}
+
+
 README composed of
 
 - Build and run docker
