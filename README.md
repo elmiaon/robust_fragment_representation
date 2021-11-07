@@ -19,7 +19,7 @@
 }
 ```
 
-README composed of
+# README composed of
 
 - Build and run docker
 - Load and prepare data
