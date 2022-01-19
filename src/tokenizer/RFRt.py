@@ -57,6 +57,7 @@ def RFRt(input_dir:dict, output_dir:dict, chunksize:int=10000):
                 print(f"finish {lang} tokenization part {idx_chunk+1}") # print to tell the status of each chunk
                 
             df = pd.concat(tokenized_list, ignore_index=True) # concatenate all chunk
+            df = df.dropna()
             df.to_csv(out_dir, sep='\t', index=False) # save the tokenized
         
             logger.info(f"finish {lang} tokenzation")
@@ -89,7 +90,7 @@ def RFR_tokenize_sentence(sentence:str, lang:str):
     else: # for other languages tokenize using whitespace
         sentence = sentence.split(' ')
     
-    if len(sentence) == 1 and sentence[0]=='': # remove the empty tokenized sentence
+    if (len(sentence) == 1 and sentence[0]=='') or len(sentence)==0: # remove the empty tokenized sentence
         return None
     else: # return the normal tokenized sentence
         return sentence
