@@ -1,7 +1,13 @@
 {
     "RFR":
     {
-        "Description": "[tokenized, represent, retrieve, aggregate] method",
-        "0": ["RFRt", ["RFRr", "0"], ["cosine", "50"], ["RFRa", "0"]]
+        "0":{
+            "Description": "[tokenized, represent, retrieve, aggregate] method",
+            "pipeline": ["RFRt", ["RFRr", "0"], ["cosine", "50"], ["RFRa", "0"]]
+        },
+        "1":{
+            "Description": "RFR without filter and new parameter tuning",
+            "pipeline": ["RFRt", ["RFRr", "0"], ["cosine", "50"], ["RFRa_rand", "0"]]
+        }
     }
 }

@@ -107,8 +107,7 @@ def get_pipeline_list(pipeline_config_list:list):
 
     for pipeline_name, pipeline_config in pipeline_config_list:
 
-        pipeline_list.append([pipeline_name, pipeline_dict[pipeline_name][pipeline_config]])
-    
+        pipeline_list.append([pipeline_name, pipeline_dict[pipeline_name][pipeline_config]["pipeline"]])
     return pipeline_list
 
 def get_lang_list(lang_config_name:str):

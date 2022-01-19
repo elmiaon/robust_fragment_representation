@@ -54,6 +54,31 @@ def tune(setting_code:str, input_dir:str, gold_dir:str, output_dir:str):
 
     return scores_df
 
+def random_tune(setting_code:str, input_dir:str, gold_dir:str, output_dir:str):
+    filename = input_dir.split('/')[-1]
+    lang_pair = filename.split('.')[-2]
+    s, t = lang_pair.split('-')
+
+    gold_df = pd.read_csv(gold_dir, sep='\t') # load gold
+    gold_df = gold_df[[s, t]] # reorder columns
+    gold_df.columns = ['id', 'pair'] # rename gold_df columns
+
+    retrieved_df = pd.read_csv(input_dir, sep='\t', converters={'candidates': literal_eval, 'distance': utils.byte_decode})
+    kerneled_df = get_kernel_retrieved_df(retrieved_df)
+
+    k_list, beta_list, filter_thres, p_thres, at = RFR_parser(setting_code)
+
+    params_set = [[kerneled_df], [gold_df], k_list, beta_list, filter_thres, p_thres, [at], [False]] # generate parameter set to save
+
+    mp_input = itertools.product(*params_set) # do permutation
+    with mp.Pool(processes=PROCESS_NUM) as p:
+        scores = p.map(get_RFRa_result, mp_input)
+    
+    scores_df = pd.concat(scores)
+    scores_df.to_csv(output_dir, sep='\t', index=False)
+
+    return scores_df
+
 def test(setting_code:str, input_dir:str, gold_dir:str, 
          score_output_dir:str, ans_output_dir:str, 
          TP_output_dir:str, TN_output_dir:str, 
