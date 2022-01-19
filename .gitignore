@@ -2,3 +2,5 @@ data/
 dev/
 logs/
 src/__pycache__
+src/aggregator/__pycache__/
+*.py[cod]

@@ -9,7 +9,7 @@ import src.utils as utils
 # define setting
 description = 'test new version of RFR'
 corpus_config_name = 'JW300s0main'
-pipeline_config_list = [['RFR', '0']]
+pipeline_config_list = [['RFR', '1']]
 lang_config_name = 'fr'
 
 if __name__ == '__main__':

@@ -17,6 +17,7 @@ import logging
 import src.log as log
 # time lib
 from time import time
+import tqdm
 # multiprocess lib
 import multiprocessing as mp
 PROCESS_NUM = mp.cpu_count()-2
@@ -43,21 +44,27 @@ def tune(setting_code:str, input_dir:str, gold_dir:str, output_dir:str):
 
     k_list, beta_list, filter_thres, p_thres, at = RFR_parser(setting_code)
 
-    params_set = [[kerneled_df], [gold_df], k_list, beta_list, filter_thres, p_thres, [at], [False]] # generate parameter set to save
+    params = itertools.product(k_list, beta_list, filter_thres, p_thres)
+    params_set = [[kerneled_df], [gold_df], params, [at], [False]] # generate parameter set to save
 
     mp_input = itertools.product(*params_set) # do permutation
+
+    scores = []
     with mp.Pool(processes=PROCESS_NUM) as p:
-        scores = p.map(get_RFRa_result, mp_input)
-    
+        for score in tqdm.tqdm(p.imap_unordered(get_RFRa_result, mp_input), total=len(k_list)*len(beta_list)*len(filter_thres)*len(p_thres)):
+            scores.append(score)
+
     scores_df = pd.concat(scores)
     scores_df.to_csv(output_dir, sep='\t', index=False)
 
     return scores_df
 
-def random_tune(setting_code:str, input_dir:str, gold_dir:str, output_dir:str):
+def random_tune(setting_code:str, input_dir:str, gold_dir:str, output_dir:str, n_points=2000, seed=42):
     filename = input_dir.split('/')[-1]
     lang_pair = filename.split('.')[-2]
     s, t = lang_pair.split('-')
+
+    np.random.seed(seed)
 
     gold_df = pd.read_csv(gold_dir, sep='\t') # load gold
     gold_df = gold_df[[s, t]] # reorder columns
@@ -66,13 +73,27 @@ def random_tune(setting_code:str, input_dir:str, gold_dir:str, output_dir:str):
     retrieved_df = pd.read_csv(input_dir, sep='\t', converters={'candidates': literal_eval, 'distance': utils.byte_decode})
     kerneled_df = get_kernel_retrieved_df(retrieved_df)
 
-    k_list, beta_list, filter_thres, p_thres, at = RFR_parser(setting_code)
+    K, B, F, P, at = RFR_parser(setting_code)
 
-    params_set = [[kerneled_df], [gold_df], k_list, beta_list, filter_thres, p_thres, [at], [False]] # generate parameter set to save
+    k_min, k_max = K[0], K[-1]
+    beta_min, beta_max = B[0], B[-1]
+    filt_min, filt_max = F[0], F[-1]
+    p_min, p_max = P[0], P[-1]
 
+    k_list = np.random.randint(low=k_min, high=k_max+1, size=n_points)
+    beta_list = convert_to_range(np.random.rand(n_points), 0, 1, beta_min, beta_max)
+    filter_thres = convert_to_range(np.random.rand(n_points), 0, 1, filt_min, filt_max)
+    p_thres = convert_to_range(np.random.rand(n_points), 0, 1, p_min, p_max)
+
+    params = zip(k_list, beta_list, filter_thres, p_thres)
+    params_set = [[kerneled_df], [gold_df], params, [at], [False]] # generate parameter set to save
     mp_input = itertools.product(*params_set) # do permutation
+
+    scores = []
     with mp.Pool(processes=PROCESS_NUM) as p:
-        scores = p.map(get_RFRa_result, mp_input)
+        for score in tqdm.tqdm(p.imap_unordered(get_RFRa_result, mp_input), total=n_points):
+            scores.append(score)
+        # scores = p.map(get_RFRa_result, mp_input)
     
     scores_df = pd.concat(scores)
     scores_df.to_csv(output_dir, sep='\t', index=False)
@@ -101,9 +122,8 @@ def test(setting_code:str, input_dir:str, gold_dir:str,
 
     k, beta, fil, p_thres = params
     k = int(k)
-    beta = int(beta)
 
-    args = (kerneled_df, gold_df, k, beta, fil, p_thres, at, True)
+    args = (kerneled_df, gold_df, (k, beta, fil, p_thres), at, True)
 
     score_df, ans, TP, TN, FP, FN, FA = get_RFRa_result(args)
 
@@ -122,7 +142,7 @@ def test(setting_code:str, input_dir:str, gold_dir:str,
 ### get RFRa result                            ###
 ##################################################
 def get_RFRa_result(args):
-    kerneled_df, gold_df, k, beta, fil, p_thres, at, analyse = args
+    kerneled_df, gold_df, (k, beta, fil, p_thres), at, analyse = args
     aggregated_df = kerneled_df.apply(get_RFRa_aggregated, args=(k, beta, fil, p_thres), axis=1)
     scores = []
     for n in at:
@@ -133,9 +153,6 @@ def get_RFRa_result(args):
             ans, TP, TN, FP, FN, FA = cal_score.get_analysis_components(aggregated_df, analysis_component_ids)
         scores.append(np.concatenate([[k, beta, fil, p_thres, n], score], axis=None))
     score_df = pd.DataFrame(scores, columns=['k', 'beta', 'fil', 'p_thres', 'n', 'acc', 'fil_p', 'fil_r', 'fil_f1', 'align_p', 'align_r', 'align_f1']).convert_dtypes()
-    
-    if beta==100 and fil==1 and p_thres==1:
-        print(f"finish {(k, beta, fil, p_thres, at, analyse)}")
 
     if analyse:
         return score_df, ans, TP, TN, FP, FN, FA
@@ -229,7 +246,7 @@ def RFR_parser(setting_code):
     setting_code = str(setting_code)
     
     if not setting_code in setting_dict['RFRa'].keys(): # check setting code existance
-        raise ValueError(f"invalid {method} aggregate setting_code")
+        raise ValueError(f"invalid {setting_code} aggregate setting_code")
     
     setting = setting_dict['RFRa'][setting_code]
 
@@ -269,3 +286,6 @@ def RFR_parser(setting_code):
         at = np.array([1, 5,10])
     
     return (kNN, beta, p_min_entropy, p_thres, at)
+
+def convert_to_range(a, amin, amax, vmin, vmax):
+    return vmin+((vmax-vmin)*a)/(amax-amin)

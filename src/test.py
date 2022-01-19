@@ -147,7 +147,7 @@ def test(tokenize_method:str, represent_method:list, retrieve_method:list, aggre
 
         aggregate_method_key, aggregate_setting_code = aggregate_method # unpack aggregate_method
 
-        if aggregate_method_key == 'RFRa':
+        if aggregate_method_key in ['RFRa', 'RFRa_rand']:
             score_df, ans, TP, TN, FP, FN, FA = test_RFRa(aggregate_setting_code, input_dir, gold_dir, 
                                                           score_output_dir, ans_output_dir,
                                                           TP_output_dir, TN_output_dir,

@@ -22,6 +22,7 @@ PROCESS_NUM = mp.cpu_count()-2
 # custom lib
 import src.utils as utils
 from src.aggregator.RFRa import tune as tune_RFRa
+from src.aggregator.RFRa import random_tune as tune_RFRa_rand
 import src.cal_score as cal_score
 
 ##################################################
@@ -127,6 +128,8 @@ def tune(tokenize_method:str, represent_method:list, retrieve_method:list, aggre
 
         if aggregate_method_key == 'RFRa':
             scores_df = tune_RFRa(aggregate_setting_code, input_dir, gold_dir, output_dir)
+        elif aggregate_method_key == 'RFRa_rand':
+            scores_df = tune_RFRa_rand(aggregate_setting_code, input_dir, gold_dir, output_dir)
         else:
             raise ValueError(f"invalid aggregator tuning method")
     
