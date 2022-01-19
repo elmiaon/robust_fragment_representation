@@ -200,7 +200,7 @@ def RFRr_parser(setting_code:str):
         n_grams = 6
     
     if 'sentence_length' in keys:
-        sentence_length = int(setting[sentence_length])
+        sentence_length = int(setting['sentence_length'])
     else:
         sentence_length = 6
     
